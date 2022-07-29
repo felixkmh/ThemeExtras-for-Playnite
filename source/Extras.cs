@@ -35,6 +35,7 @@ namespace Extras
         public Extras(IPlayniteAPI api) : base(api)
         {
             settingsViewModel = new ExtrasSettingsViewModel(this);
+            
             Properties = new GenericPluginProperties
             {
                 HasSettings = false
@@ -53,7 +54,74 @@ namespace Extras
 
             AddSettingsAsResources<ICommand>();
         }
-        
+
+        private void Settings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (PlayniteApi.MainView.SelectedGames?.FirstOrDefault() is Game current)
+            {
+                if (SettingsProperties.FirstOrDefault(p => p.Name == e.PropertyName) is PropertyInfo property)
+                {
+                    if (GameProperties.FirstOrDefault(p => p.Name == property.Name) is PropertyInfo gameProperty)
+                    {
+                        PlayniteApi.Database.Games.ItemUpdated -= Games_ItemUpdated;
+                        Settings.PropertyChanged -= Settings_PropertyChanged;
+                        try
+                        {
+                            if (property.PropertyType == gameProperty.PropertyType)
+                            {
+                                var currentValue = gameProperty.GetValue(current);
+                                var newValue = property.GetValue(Settings);
+                                if (!object.Equals(currentValue, newValue))
+                                {
+                                    gameProperty.SetValue(current, newValue);
+                                    PlayniteApi.Database.Games.Update(current);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.Debug(ex, $"Failed to update property {gameProperty.Name} for {current.Name}.");
+                        }
+                        Settings.PropertyChanged += Settings_PropertyChanged;
+                        PlayniteApi.Database.Games.ItemUpdated += Games_ItemUpdated;
+                    }
+                }
+            }
+        }
+
+        private void Games_ItemUpdated(object sender, ItemUpdatedEventArgs<Game> e)
+        {
+            if (PlayniteApi.MainView.SelectedGames?.FirstOrDefault() is Game currentGame)
+            {
+                if (e?.UpdatedItems?.FirstOrDefault(g => g.NewData.Id == currentGame.Id) is ItemUpdateEvent<Game> update)
+                {
+                    var editedGame = update.NewData;
+                    foreach (var property in SettingsProperties)
+                    {
+                        if (GameProperties.FirstOrDefault(p => p.Name == property.Name) is PropertyInfo gameProperty)
+                        {
+                            Settings.PropertyChanged -= Settings_PropertyChanged;
+                            try
+                            {
+                                var newValue = gameProperty.GetValue(editedGame);
+                                var currentValue = property.GetValue(Settings);
+                                if (property.PropertyType == gameProperty.PropertyType
+                                    && !object.Equals(currentValue,newValue))
+                                {
+                                    property.SetValue(Settings, newValue);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.Debug(ex, $"Failed to update property {gameProperty.Name} for {editedGame.Name}.");
+                            }
+                            Settings.PropertyChanged += Settings_PropertyChanged;
+                        }
+                    }
+                }
+            }
+        }
+
         private void AddSettingsAsResources<T>()
         {
             if (Application.Current is Application app)
@@ -85,8 +153,19 @@ namespace Extras
         DesktopView lastView;
         IEnumerable<Game> lastSelected;
 
+        public static readonly PropertyInfo[] SettingsProperties 
+            = typeof(ExtrasSettings)
+            .GetProperties()
+            .Where(p => p.GetCustomAttribute<GamePropertyAttribute>(false) != null)
+            .ToArray();
+        public static readonly PropertyInfo[] GameProperties = typeof(Game).GetProperties()
+            .Where(p => p.CanRead && p.CanWrite)
+            .Where(p => SettingsProperties.Any(o => o.Name == p.Name))
+            .ToArray();
+
         public override void OnGameSelected(OnGameSelectedEventArgs args)
         {
+            Settings.PropertyChanged -= Settings_PropertyChanged;
             var prevSelected = lastSelected;
             var prevMode = lastView;
             lastSelected = args.NewValue;
@@ -95,6 +174,23 @@ namespace Extras
             {
                 PlayniteApi.MainView.SelectGames(prevSelected.Select(g => g.Id));
             }
+            if (args.NewValue?.FirstOrDefault() is Game current)
+            {
+                foreach(var property in SettingsProperties)
+                {
+                    if (GameProperties.FirstOrDefault(p => p.Name == property.Name) is PropertyInfo gameProperty)
+                    {
+                        if (property.PropertyType == gameProperty.PropertyType)
+                        {
+                            var newValue = gameProperty.GetValue(current);
+                            var currentValue = property.GetValue(Settings);
+                            if (!object.Equals(currentValue, newValue))
+                                property.SetValue(Settings, newValue);
+                        }
+                    }
+                }
+            }
+            Settings.PropertyChanged += Settings_PropertyChanged;
         }
 
         public override void OnGameInstalled(OnGameInstalledEventArgs args)
@@ -128,6 +224,8 @@ namespace Extras
         public override async void OnApplicationStarted(OnApplicationStartedEventArgs args)
         {
             // Add code to be executed when Playnite is initialized.
+            settingsViewModel.Settings.PropertyChanged += Settings_PropertyChanged;
+            PlayniteApi.Database.Games.ItemUpdated += Games_ItemUpdated;
             if (PlayniteApi.ApplicationInfo.Mode == ApplicationMode.Desktop)
             {
                 lastView = PlayniteApi.MainView.ActiveDesktopView;

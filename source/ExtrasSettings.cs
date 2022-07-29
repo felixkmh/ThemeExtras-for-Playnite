@@ -14,11 +14,25 @@ using System.Windows.Input;
 
 namespace Extras
 {
+    [System.AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = true)]
+    public class GamePropertyAttribute : DontSerializeAttribute {}
+
     public class ExtrasSettings : ObservableObject
     {
         [DontSerialize]
         public ObservableCollection<Game> RunningGames { get; } = new ObservableCollection<Game>();
 
+        private bool hidden;
+        [GameProperty]
+        public bool Hidden { get => hidden; set => SetValue(ref hidden, value); }
+
+        private string notes;
+        [GameProperty]
+        public string Notes { get => notes; set => SetValue(ref notes, value); }
+
+        private bool favorite;
+        [GameProperty]
+        public bool Favorite { get => favorite; set => SetValue(ref favorite, value); }
 
         private bool isAnyGameRunning = false;
         [DontSerialize]
