@@ -38,8 +38,9 @@ namespace Extras
             
             Properties = new GenericPluginProperties
             {
-                HasSettings = false
+                HasSettings = true
             };
+
             AddCustomElementSupport(new AddCustomElementSupportArgs
             {
                 SourceName = ExtensionName,
@@ -52,7 +53,7 @@ namespace Extras
             });
             AddSettingsSupport(new AddSettingsSupportArgs { SourceName = ExtensionName, SettingsRoot = "settingsViewModel.Settings" });
 
-            AddSettingsAsResources<ICommand>();
+            AddPropertiesAsResources<ICommand>(Settings.Commands);
         }
 
         private void Settings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -122,13 +123,12 @@ namespace Extras
             }
         }
 
-        private void AddSettingsAsResources<T>()
+        private void AddPropertiesAsResources<T>(object source)
         {
             if (Application.Current is Application app)
             {
                 ResourceDictionary resourceDictionary = new ResourceDictionary();
-                var settings = Settings ?? new ExtrasSettings();
-                var settingsType = typeof(ExtrasSettings);
+                var settingsType = source.GetType();
                 var properties = settingsType.GetProperties();
                 var typedProperties = properties.Where(p => p.PropertyType == typeof(T));
                 var window = app.Windows.OfType<Window>().FirstOrDefault(w => w.Name == "WindowMain");
@@ -136,7 +136,7 @@ namespace Extras
                 {
                     try
                     {
-                        if (typedProperty.GetValue(settings) is T value)
+                        if (typedProperty.GetValue(source) is T value)
                         {
                             resourceDictionary[typedProperty.Name] = value;
                         }
