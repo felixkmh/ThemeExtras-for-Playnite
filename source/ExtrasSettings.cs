@@ -24,7 +24,7 @@ namespace Extras
         private GameProperties() {}
 
         private bool hidden;
-        public bool Hidden { get => hidden; set => SetValue(ref hidden, value); }
+        public bool Hidden { get => hidden; set { var selected = API.Instance.MainView.SelectedGames; SetValue(ref hidden, value); API.Instance.MainView.SelectGames(selected.Select(g => g.Id)); } }
 
         private string notes;
         public string Notes { get => notes; set => SetValue(ref notes, value); }
@@ -37,6 +37,9 @@ namespace Extras
     {
         private bool enableGameMenuRating = false;
         public bool EnableGameMenuRating { get => enableGameMenuRating; set => SetValue(ref enableGameMenuRating, value); }
+
+        private bool enableSelectionPreservation = true;
+        public bool EnableSelectionPreservation { get => enableSelectionPreservation; set => SetValue(ref enableSelectionPreservation, value); }
 
         [DontSerialize]
         public CommandSettings Commands { get; } = CommandSettings.Instance;
