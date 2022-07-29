@@ -125,7 +125,7 @@ namespace Extras
                         }
                     catch (Exception ex)
                     {
-                        Extras.logger.Debug(ex, $"Failed to deserialize manifest file at ${extraManifestPath}.");
+                        Extras.logger.Debug(ex, "Failed to deserialize extra manifest file.");
                     }
                     return null;
                 });
