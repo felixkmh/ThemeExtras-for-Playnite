@@ -10,7 +10,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
+using static System.Reflection.BindingFlags;
 
 namespace Extras
 {
@@ -23,7 +26,7 @@ namespace Extras
         internal const string CommunityRatingElement = "CommunityRating";
         internal const string CriticRatingElement = "CriticRating";
 
-        public ExtrasSettings Settings => settingsViewModel.Settings;
+        public ExtrasSettings Settings => settingsViewModel?.Settings;
         public ExtrasSettingsViewModel settingsViewModel { get; set; }
 
         public override Guid Id { get; } = Guid.Parse("d2039edd-78f5-47c5-b190-72afef560fbe");
@@ -46,6 +49,35 @@ namespace Extras
                 }.SelectMany(e => Enumerable.Range(0, 3).Select(i => e + (i == 0 ? "" : i.ToString()))).ToList()
             });
             AddSettingsSupport(new AddSettingsSupportArgs { SourceName = ExtensionName, SettingsRoot = "settingsViewModel.Settings" });
+
+            AddSettingsAsResources<ICommand>();
+            AddSettingsAsResources<IValueConverter>();
+            AddSettingsAsResources<IMultiValueConverter>();
+        }
+
+        private void AddSettingsAsResources<T>()
+        {
+            if (Application.Current is Application app)
+            {
+                var settings = Settings ?? new ExtrasSettings();
+                var settingsType = typeof(ExtrasSettings);
+                var properties = settingsType.GetProperties(Public | GetField);
+                var typedProperties = properties.Where(p => p.PropertyType == typeof(T));
+                foreach (var typedProperty in typedProperties)
+                {
+                    try
+                    {
+                        if (typedProperty.GetValue(settings) is T value)
+                        {
+                            app.Resources[typedProperty.Name] = value;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Debug(ex, $"Failed to add {typedProperty.Name} as resource.");
+                    }
+                }
+            }
         }
 
         public override void OnGameInstalled(OnGameInstalledEventArgs args)
