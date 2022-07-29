@@ -109,23 +109,23 @@ namespace Extras
 
                 Models.ThemeExtrasManifest extrasManifest = await Task.Run(() =>
                 {
-                    if (manifests?.FirstOrDefault(m => m.Value.Id == themeId) is var current && current.HasValue)
+                    try
                     {
-                        var themeDir = Path.GetDirectoryName(current.Value.Key);
-                        if (!string.IsNullOrEmpty(themeDir) && Directory.GetFiles(themeDir, "themeExtras.yaml").FirstOrDefault() is string extraManifestPath)
+                        if (manifests?.FirstOrDefault(m => m.Value.Id == themeId) is var current && current.HasValue)
                         {
-                            using (var reader = File.OpenText(extraManifestPath))
+                            var themeDir = Path.GetDirectoryName(current.Value.Key);
+                            if (!string.IsNullOrEmpty(themeDir) && Directory.GetFiles(themeDir, "themeExtras.yaml").FirstOrDefault() is string extraManifestPath)
                             {
-                                try
+                                using (var reader = File.OpenText(extraManifestPath))
                                 {
-                                    return yaml.Deserialize<Models.ThemeExtrasManifest>(reader);
-                                }
-                                catch (Exception ex)
-                                {
-                                    Extras.logger.Debug(ex, $"Failed to deserialize manifest file at ${extraManifestPath}.");
+                                        return yaml.Deserialize<Models.ThemeExtrasManifest>(reader);
+                                    }
                                 }
                             }
                         }
+                    catch (Exception ex)
+                    {
+                        Extras.logger.Debug(ex, $"Failed to deserialize manifest file at ${extraManifestPath}.");
                     }
                     return null;
                 });
