@@ -36,9 +36,12 @@ namespace Extras.Controls
         {
             if (!(e.NewValue is Visibility.Visible))
             {
-                isDragging = false;
-                mouseDown = false;
-                Playnite.SDK.API.Instance.Database.Games.Update(GameContext);
+                if (mouseDown)
+                {
+                    isDragging = false;
+                    mouseDown = false;
+                    Playnite.SDK.API.Instance.Database.Games.Update(GameContext);
+                }
             }
         }
 
