@@ -17,11 +17,8 @@ namespace Extras
     [System.AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = true)]
     public class GamePropertyAttribute : DontSerializeAttribute {}
 
-    public class ExtrasSettings : ObservableObject
+    public class GameProperties : ObservableObject
     {
-        [DontSerialize]
-        public ObservableCollection<Game> RunningGames { get; } = new ObservableCollection<Game>();
-
         private bool hidden;
         [GameProperty]
         public bool Hidden { get => hidden; set => SetValue(ref hidden, value); }
@@ -33,6 +30,18 @@ namespace Extras
         private bool favorite;
         [GameProperty]
         public bool Favorite { get => favorite; set => SetValue(ref favorite, value); }
+    }
+
+    public class ExtrasSettings : ObservableObject
+    {
+        [DontSerialize]
+        public CommandSettings Commands { get; } = new CommandSettings();
+
+        [DontSerialize]
+        public GameProperties Game { get; } = new GameProperties();
+
+        [DontSerialize]
+        public ObservableCollection<Game> RunningGames { get; } = new ObservableCollection<Game>();
 
         private bool isAnyGameRunning = false;
         [DontSerialize]
@@ -41,230 +50,7 @@ namespace Extras
         [DontSerialize]
         public IValueConverter IntToRatingBrushConverter { get; } = new Converters.IntToRatingBrushConverter();
 
-        public static void UpdateGames(object sender, EventArgs args)
-        {
-            API.Instance.Database.Games.Update(API.Instance.MainView.SelectedGames);
-        }
-
-        [DontSerialize]
-        public ICommand UpdateGamesCommand { get; }
-            = new RelayCommand(() =>
-            {
-                UpdateGames(null, null);
-            }, () => API.Instance?.MainView?.SelectedGames?.Count() > 0);
-
-        [DontSerialize]
-        public ICommand ResetScoreCommand { get; }
-            = new RelayCommand<string>(kinds =>
-            {
-                foreach (var game in API.Instance.MainView.SelectedGames)
-                {
-                    if (kinds.Contains("User"))
-                    {
-                        game.UserScore = null;
-                    }
-                    if (kinds.Contains("Community"))
-                    {
-                        game.CommunityScore = null;
-                    }
-                    if (kinds.Contains("Critic"))
-                    {
-                        game.CriticScore = null;
-                    }
-                }
-                API.Instance.Database.Games.Update(API.Instance.MainView.SelectedGames);
-            }, _ => API.Instance?.MainView?.SelectedGames?.Count() > 0);
-
-        [DontSerialize]
-        public ICommand OpenGameAssetFolderCommand { get; }
-            = new RelayCommand(
-            () =>
-            {
-                var api = API.Instance;
-                if (api?.MainView?.SelectedGames?.FirstOrDefault() is Game selected)
-                {
-                    var path = Path.Combine(api.Database.DatabasePath, "files", selected.Id.ToString());
-                    if (Directory.Exists(path))
-                    {
-                        System.Diagnostics.Process.Start(path);
-                    }
-                }
-            },
-            () =>
-            {
-                var api = API.Instance;
-                if (api?.MainView?.SelectedGames?.FirstOrDefault() is Game selected)
-                {
-                    var path = Path.Combine(api.Database.DatabasePath, "files", selected.Id.ToString());
-                    return Directory.Exists(path);
-                }
-                return false;
-            });
-
-        public static void OpenPlayniteSettings(object sender, EventArgs args)
-        {
-            if (Application.Current?.Windows?.OfType<Window>().FirstOrDefault(w => w.Name == "WindowMain") is Window mainWindow)
-            {
-                if (mainWindow.InputBindings.OfType<KeyBinding>().FirstOrDefault(b => b.Key == Key.F4) is KeyBinding binding)
-                {
-                    if (binding.Command.CanExecute(null))
-                    {
-                        binding.Command.Execute(null);
-                    }
-                }
-            }
-        }
-
-        [DontSerialize]
-        public ICommand OpenPlayniteSettingsCommand { get; }
-            = new RelayCommand(
-            () =>
-            {
-                OpenPlayniteSettings(null, null);
-            },
-            () => true);
-
-        [DontSerialize]
-        public ICommand OpenAddonWindowCommand { get; }
-            = new RelayCommand(
-            () =>
-            {
-                if (Application.Current?.Windows?.OfType<Window>().FirstOrDefault(w => w.Name == "WindowMain") is Window mainWindow)
-                {
-                    if (mainWindow.InputBindings.OfType<KeyBinding>().FirstOrDefault(b => b.Key == Key.F9) is KeyBinding binding)
-                    {
-                        if (binding.Command.CanExecute(null))
-                        {
-                            binding.Command.Execute(null);
-                        }
-                    }
-                }
-            },
-            () => true);
-
-        [DontSerialize]
-        public ICommand SwitchModeCommand { get; }
-            = new RelayCommand(
-            () =>
-            {
-                if (Application.Current?.Windows?.OfType<Window>().FirstOrDefault(w => w.Name == "WindowMain") is Window mainWindow)
-                {
-                    if (mainWindow.InputBindings.OfType<KeyBinding>().FirstOrDefault(b => b.Key == Key.F11) is KeyBinding binding)
-                    {
-                        if (binding.Command.CanExecute(null))
-                        {
-                            binding.Command.Execute(null);
-                        }
-                    }
-                }
-            },
-            () => true);
-
-        [DontSerialize]
-        public ICommand OpenPluginSettingsCommand { get; }
-            = new RelayCommand<string>(
-            id =>
-            {
-                var api = API.Instance;
-            if (api.Addons?.Plugins?.FirstOrDefault(p => string.Equals(p.Id.ToString(), id, System.StringComparison.InvariantCultureIgnoreCase)) is Plugin plugin)
-                {
-                    try
-                    {
-                        plugin.OpenSettingsView();
-                    }
-                    catch (System.Exception ex)
-                    {
-                        Extras.logger.Debug(ex, $"Failed to open plugin settings for plugin with Id: {id}");
-                    }
-                }
-            },
-            id =>
-            {
-                var api = API.Instance;
-                if (api.Addons?.Plugins?.FirstOrDefault(p => string.Equals(p.Id.ToString(), id, System.StringComparison.InvariantCultureIgnoreCase)) is Plugin plugin)
-                {
-                    if (plugin is GenericPlugin genericPlugin) return genericPlugin.Properties?.HasSettings ?? false;
-                    if (plugin is LibraryPlugin libraryPlugin) return libraryPlugin.Properties?.HasSettings ?? false;
-                    if (plugin is MetadataPlugin metadataPlugin) return metadataPlugin.Properties?.HasSettings ?? false;
-                }
-                return false;
-            });
-
-        [DontSerialize]
-        public ICommand OpenPluginConfigDirCommand { get; }
-            = new RelayCommand<string>(
-            id =>
-            {
-                var api = API.Instance;
-                if (api.Addons?.Plugins?.FirstOrDefault(p => string.Equals(p.Id.ToString(), id, System.StringComparison.InvariantCultureIgnoreCase)) is Plugin plugin)
-                {
-                    try
-                    {
-                        System.Diagnostics.Process.Start(plugin.GetPluginUserDataPath());
-                    }
-                    catch (System.Exception ex)
-                    {
-                        Extras.logger.Debug(ex, $"Failed to open config directory for plugin with Id: {id}");
-                    }
-                }
-            },
-            id =>
-            {
-                var api = API.Instance;
-                if (api.Addons?.Plugins?.FirstOrDefault(p => string.Equals(p.Id.ToString(), id, System.StringComparison.InvariantCultureIgnoreCase)) is Plugin plugin)
-                {
-                    return string.IsNullOrEmpty(plugin.GetPluginUserDataPath());
-                }
-                return false;
-            });
-
-        [DontSerialize]
-        public ICommand OpenPlayniteLogCommand { get; }
-            = new RelayCommand<string>(
-            id =>
-            {
-                var api = API.Instance;
-                if (api?.Paths?.ConfigurationPath is string path)
-                {
-                    var logPath = Path.Combine(path, "playnite.log");
-                    try
-                    {
-                        if (File.Exists(logPath))
-                        {
-                            System.Diagnostics.Process.Start(logPath);
-                        }
-                    }
-                    catch (System.Exception ex)
-                    {
-                        Extras.logger.Debug(ex, $"Failed to open {logPath}");
-                    }
-                }
-            },
-            id => true);
-
-        [DontSerialize]
-        public ICommand OpenExtensionsLogCommand { get; }
-            = new RelayCommand<string>(
-            id =>
-            {
-                var api = API.Instance;
-                if (api?.Paths?.ConfigurationPath is string path)
-                {
-                    var logPath = Path.Combine(path, "extensions.log");
-                    try
-                    {
-                        if (File.Exists(logPath))
-                        {
-                            System.Diagnostics.Process.Start(logPath);
-                        }
-                    }
-                    catch (System.Exception ex)
-                    {
-                        Extras.logger.Debug(ex, $"Failed to open {logPath}");
-                    }
-                }
-            },
-            id => true);
+        
     }
 
     public class ExtrasSettingsViewModel : ObservableObject, ISettings
@@ -331,5 +117,223 @@ namespace Extras
             errors = new List<string>();
             return true;
         }
+    }
+
+    public class CommandSettings
+    {
+        public static void UpdateGames(object sender, EventArgs args)
+        {
+            API.Instance.Database.Games.Update(API.Instance.MainView.SelectedGames);
+        }
+
+        public ICommand UpdateGamesCommand { get; }
+            = new RelayCommand(() =>
+            {
+                UpdateGames(null, null);
+            }, () => API.Instance?.MainView?.SelectedGames?.Count() > 0);
+
+        public ICommand ResetScoreCommand { get; }
+            = new RelayCommand<string>(kinds =>
+            {
+                foreach (var game in API.Instance.MainView.SelectedGames)
+                {
+                    if (kinds.Contains("User"))
+                    {
+                        game.UserScore = null;
+                    }
+                    if (kinds.Contains("Community"))
+                    {
+                        game.CommunityScore = null;
+                    }
+                    if (kinds.Contains("Critic"))
+                    {
+                        game.CriticScore = null;
+                    }
+                }
+                API.Instance.Database.Games.Update(API.Instance.MainView.SelectedGames);
+            }, _ => API.Instance?.MainView?.SelectedGames?.Count() > 0);
+
+        public ICommand OpenGameAssetFolderCommand { get; }
+            = new RelayCommand(
+            () =>
+            {
+                var api = API.Instance;
+                if (api?.MainView?.SelectedGames?.FirstOrDefault() is Game selected)
+                {
+                    var path = Path.Combine(api.Database.DatabasePath, "files", selected.Id.ToString());
+                    if (Directory.Exists(path))
+                    {
+                        System.Diagnostics.Process.Start(path);
+                    }
+                }
+            },
+            () =>
+            {
+                var api = API.Instance;
+                if (api?.MainView?.SelectedGames?.FirstOrDefault() is Game selected)
+                {
+                    var path = Path.Combine(api.Database.DatabasePath, "files", selected.Id.ToString());
+                    return Directory.Exists(path);
+                }
+                return false;
+            });
+
+        public static void OpenPlayniteSettings(object sender, EventArgs args)
+        {
+            if (Application.Current?.Windows?.OfType<Window>().FirstOrDefault(w => w.Name == "WindowMain") is Window mainWindow)
+            {
+                if (mainWindow.InputBindings.OfType<KeyBinding>().FirstOrDefault(b => b.Key == Key.F4) is KeyBinding binding)
+                {
+                    if (binding.Command.CanExecute(null))
+                    {
+                        binding.Command.Execute(null);
+                    }
+                }
+            }
+        }
+
+        public ICommand OpenPlayniteSettingsCommand { get; }
+            = new RelayCommand(
+            () =>
+            {
+                OpenPlayniteSettings(null, null);
+            },
+            () => true);
+
+        public ICommand OpenAddonWindowCommand { get; }
+            = new RelayCommand(
+            () =>
+            {
+                if (Application.Current?.Windows?.OfType<Window>().FirstOrDefault(w => w.Name == "WindowMain") is Window mainWindow)
+                {
+                    if (mainWindow.InputBindings.OfType<KeyBinding>().FirstOrDefault(b => b.Key == Key.F9) is KeyBinding binding)
+                    {
+                        if (binding.Command.CanExecute(null))
+                        {
+                            binding.Command.Execute(null);
+                        }
+                    }
+                }
+            },
+            () => true);
+
+        public ICommand SwitchModeCommand { get; }
+            = new RelayCommand(
+            () =>
+            {
+                if (Application.Current?.Windows?.OfType<Window>().FirstOrDefault(w => w.Name == "WindowMain") is Window mainWindow)
+                {
+                    if (mainWindow.InputBindings.OfType<KeyBinding>().FirstOrDefault(b => b.Key == Key.F11) is KeyBinding binding)
+                    {
+                        if (binding.Command.CanExecute(null))
+                        {
+                            binding.Command.Execute(null);
+                        }
+                    }
+                }
+            },
+            () => true);
+
+        public ICommand OpenPluginSettingsCommand { get; }
+            = new RelayCommand<string>(
+            id =>
+            {
+                var api = API.Instance;
+                if (api.Addons?.Plugins?.FirstOrDefault(p => string.Equals(p.Id.ToString(), id, System.StringComparison.InvariantCultureIgnoreCase)) is Plugin plugin)
+                {
+                    try
+                    {
+                        plugin.OpenSettingsView();
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Extras.logger.Debug(ex, $"Failed to open plugin settings for plugin with Id: {id}");
+                    }
+                }
+            },
+            id =>
+            {
+                var api = API.Instance;
+                if (api.Addons?.Plugins?.FirstOrDefault(p => string.Equals(p.Id.ToString(), id, System.StringComparison.InvariantCultureIgnoreCase)) is Plugin plugin)
+                {
+                    if (plugin is GenericPlugin genericPlugin) return genericPlugin.Properties?.HasSettings ?? false;
+                    if (plugin is LibraryPlugin libraryPlugin) return libraryPlugin.Properties?.HasSettings ?? false;
+                    if (plugin is MetadataPlugin metadataPlugin) return metadataPlugin.Properties?.HasSettings ?? false;
+                }
+                return false;
+            });
+
+        public ICommand OpenPluginConfigDirCommand { get; }
+            = new RelayCommand<string>(
+            id =>
+            {
+                var api = API.Instance;
+                if (api.Addons?.Plugins?.FirstOrDefault(p => string.Equals(p.Id.ToString(), id, System.StringComparison.InvariantCultureIgnoreCase)) is Plugin plugin)
+                {
+                    try
+                    {
+                        System.Diagnostics.Process.Start(plugin.GetPluginUserDataPath());
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Extras.logger.Debug(ex, $"Failed to open config directory for plugin with Id: {id}");
+                    }
+                }
+            },
+            id =>
+            {
+                var api = API.Instance;
+                if (api.Addons?.Plugins?.FirstOrDefault(p => string.Equals(p.Id.ToString(), id, System.StringComparison.InvariantCultureIgnoreCase)) is Plugin plugin)
+                {
+                    return string.IsNullOrEmpty(plugin.GetPluginUserDataPath());
+                }
+                return false;
+            });
+
+        public ICommand OpenPlayniteLogCommand { get; }
+            = new RelayCommand<string>(
+            id =>
+            {
+                var api = API.Instance;
+                if (api?.Paths?.ConfigurationPath is string path)
+                {
+                    var logPath = Path.Combine(path, "playnite.log");
+                    try
+                    {
+                        if (File.Exists(logPath))
+                        {
+                            System.Diagnostics.Process.Start(logPath);
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Extras.logger.Debug(ex, $"Failed to open {logPath}");
+                    }
+                }
+            },
+            id => true);
+
+        public ICommand OpenExtensionsLogCommand { get; }
+            = new RelayCommand<string>(
+            id =>
+            {
+                var api = API.Instance;
+                if (api?.Paths?.ConfigurationPath is string path)
+                {
+                    var logPath = Path.Combine(path, "extensions.log");
+                    try
+                    {
+                        if (File.Exists(logPath))
+                        {
+                            System.Diagnostics.Process.Start(logPath);
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Extras.logger.Debug(ex, $"Failed to open {logPath}");
+                    }
+                }
+            },
+            id => true);
     }
 }

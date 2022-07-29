@@ -59,18 +59,18 @@ namespace Extras
         {
             if (PlayniteApi.MainView.SelectedGames?.FirstOrDefault() is Game current)
             {
-                if (SettingsProperties.FirstOrDefault(p => p.Name == e.PropertyName) is PropertyInfo property)
+                if (GameSettingsProperties.FirstOrDefault(p => p.Name == e.PropertyName) is PropertyInfo property)
                 {
                     if (GameProperties.FirstOrDefault(p => p.Name == property.Name) is PropertyInfo gameProperty)
                     {
                         PlayniteApi.Database.Games.ItemUpdated -= Games_ItemUpdated;
-                        Settings.PropertyChanged -= Settings_PropertyChanged;
+                        Settings.Game.PropertyChanged -= Settings_PropertyChanged;
                         try
                         {
                             if (property.PropertyType == gameProperty.PropertyType)
                             {
                                 var currentValue = gameProperty.GetValue(current);
-                                var newValue = property.GetValue(Settings);
+                                var newValue = property.GetValue(Settings.Game);
                                 if (!object.Equals(currentValue, newValue))
                                 {
                                     gameProperty.SetValue(current, newValue);
@@ -82,7 +82,7 @@ namespace Extras
                         {
                             logger.Debug(ex, $"Failed to update property {gameProperty.Name} for {current.Name}.");
                         }
-                        Settings.PropertyChanged += Settings_PropertyChanged;
+                        Settings.Game.PropertyChanged += Settings_PropertyChanged;
                         PlayniteApi.Database.Games.ItemUpdated += Games_ItemUpdated;
                     }
                 }
@@ -96,11 +96,11 @@ namespace Extras
                 if (e?.UpdatedItems?.FirstOrDefault(g => g.NewData.Id == currentGame.Id) is ItemUpdateEvent<Game> update)
                 {
                     var editedGame = update.NewData;
-                    foreach (var property in SettingsProperties)
+                    foreach (var property in GameSettingsProperties)
                     {
                         if (GameProperties.FirstOrDefault(p => p.Name == property.Name) is PropertyInfo gameProperty)
                         {
-                            Settings.PropertyChanged -= Settings_PropertyChanged;
+                            Settings.Game.PropertyChanged -= Settings_PropertyChanged;
                             try
                             {
                                 var newValue = gameProperty.GetValue(editedGame);
@@ -108,14 +108,14 @@ namespace Extras
                                 if (property.PropertyType == gameProperty.PropertyType
                                     && !object.Equals(currentValue,newValue))
                                 {
-                                    property.SetValue(Settings, newValue);
+                                    property.SetValue(Settings.Game, newValue);
                                 }
                             }
                             catch (Exception ex)
                             {
                                 logger.Debug(ex, $"Failed to update property {gameProperty.Name} for {editedGame.Name}.");
                             }
-                            Settings.PropertyChanged += Settings_PropertyChanged;
+                            Settings.Game.PropertyChanged += Settings_PropertyChanged;
                         }
                     }
                 }
@@ -153,19 +153,19 @@ namespace Extras
         DesktopView lastView;
         IEnumerable<Game> lastSelected;
 
-        public static readonly PropertyInfo[] SettingsProperties 
-            = typeof(ExtrasSettings)
+        public static readonly PropertyInfo[] GameSettingsProperties 
+            = typeof(GameProperties)
             .GetProperties()
             .Where(p => p.GetCustomAttribute<GamePropertyAttribute>(false) != null)
             .ToArray();
         public static readonly PropertyInfo[] GameProperties = typeof(Game).GetProperties()
             .Where(p => p.CanRead && p.CanWrite)
-            .Where(p => SettingsProperties.Any(o => o.Name == p.Name))
+            .Where(p => GameSettingsProperties.Any(o => o.Name == p.Name))
             .ToArray();
 
         public override void OnGameSelected(OnGameSelectedEventArgs args)
         {
-            Settings.PropertyChanged -= Settings_PropertyChanged;
+            Settings.Game.PropertyChanged -= Settings_PropertyChanged;
             var prevSelected = lastSelected;
             var prevMode = lastView;
             lastSelected = args.NewValue;
@@ -176,21 +176,21 @@ namespace Extras
             }
             if (args.NewValue?.FirstOrDefault() is Game current)
             {
-                foreach(var property in SettingsProperties)
+                foreach(var property in GameSettingsProperties)
                 {
                     if (GameProperties.FirstOrDefault(p => p.Name == property.Name) is PropertyInfo gameProperty)
                     {
                         if (property.PropertyType == gameProperty.PropertyType)
                         {
                             var newValue = gameProperty.GetValue(current);
-                            var currentValue = property.GetValue(Settings);
+                            var currentValue = property.GetValue(Settings.Game);
                             if (!object.Equals(currentValue, newValue))
-                                property.SetValue(Settings, newValue);
+                                property.SetValue(Settings.Game, newValue);
                         }
                     }
                 }
             }
-            Settings.PropertyChanged += Settings_PropertyChanged;
+            Settings.Game.PropertyChanged += Settings_PropertyChanged;
         }
 
         public override IEnumerable<GameMenuItem> GetGameMenuItems(GetGameMenuItemsArgs args)
