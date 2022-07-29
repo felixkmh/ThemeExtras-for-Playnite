@@ -52,8 +52,6 @@ namespace Extras
             AddSettingsSupport(new AddSettingsSupportArgs { SourceName = ExtensionName, SettingsRoot = "settingsViewModel.Settings" });
 
             AddSettingsAsResources<ICommand>();
-            AddSettingsAsResources<IValueConverter>();
-            AddSettingsAsResources<IMultiValueConverter>();
         }
         
         private void AddSettingsAsResources<T>()
@@ -81,6 +79,21 @@ namespace Extras
                     }
                 }
                 app.Resources.MergedDictionaries.Add(resourceDictionary);
+            }
+        }
+
+        DesktopView lastView;
+        IEnumerable<Game> lastSelected;
+
+        public override void OnGameSelected(OnGameSelectedEventArgs args)
+        {
+            var prevSelected = lastSelected;
+            var prevMode = lastView;
+            lastSelected = args.NewValue;
+            lastView = PlayniteApi.MainView.ActiveDesktopView;
+            if (prevMode != lastView && lastSelected == null && prevSelected != null)
+            {
+                PlayniteApi.MainView.SelectGames(prevSelected.Select(g => g.Id));
             }
         }
 
@@ -117,6 +130,7 @@ namespace Extras
             // Add code to be executed when Playnite is initialized.
             if (PlayniteApi.ApplicationInfo.Mode == ApplicationMode.Desktop)
             {
+                lastView = PlayniteApi.MainView.ActiveDesktopView;
                 await Task.Delay(5000);
 
                 var themeId = PlayniteApi.ApplicationSettings.DesktopTheme;
