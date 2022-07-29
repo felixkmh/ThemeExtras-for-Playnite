@@ -35,6 +35,9 @@ namespace Extras
 
     public class ExtrasSettings : ObservableObject
     {
+        private bool enableGameMenuRating = false;
+        public bool EnableGameMenuRating { get => enableGameMenuRating; set => SetValue(ref enableGameMenuRating, value); }
+
         [DontSerialize]
         public CommandSettings Commands { get; } = CommandSettings.Instance;
 
