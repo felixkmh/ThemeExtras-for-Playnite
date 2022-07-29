@@ -47,6 +47,7 @@ namespace Extras.Controls
                 if (game.UserScore == 0)
                 {
                     game.UserScore = null;
+                    
                 }
             }
         }
@@ -73,6 +74,7 @@ namespace Extras.Controls
                     if (game.UserScore == 0)
                     {
                         game.UserScore = null;
+                        isDragging = false;
                     }
                 }
             }
