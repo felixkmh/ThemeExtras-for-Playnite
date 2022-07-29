@@ -19,26 +19,27 @@ namespace Extras
 
     public class GameProperties : ObservableObject
     {
+        public static readonly GameProperties Instance = new GameProperties();
+
+        private GameProperties() {}
+
         private bool hidden;
-        [GameProperty]
         public bool Hidden { get => hidden; set => SetValue(ref hidden, value); }
 
         private string notes;
-        [GameProperty]
         public string Notes { get => notes; set => SetValue(ref notes, value); }
 
         private bool favorite;
-        [GameProperty]
         public bool Favorite { get => favorite; set => SetValue(ref favorite, value); }
     }
 
     public class ExtrasSettings : ObservableObject
     {
         [DontSerialize]
-        public CommandSettings Commands { get; } = new CommandSettings();
+        public CommandSettings Commands { get; } = CommandSettings.Instance;
 
         [DontSerialize]
-        public GameProperties Game { get; } = new GameProperties();
+        public GameProperties Game { get; } = GameProperties.Instance;
 
         [DontSerialize]
         public ObservableCollection<Game> RunningGames { get; } = new ObservableCollection<Game>();
@@ -121,6 +122,10 @@ namespace Extras
 
     public class CommandSettings
     {
+        public static readonly CommandSettings Instance = new CommandSettings();
+
+        private CommandSettings() {}
+
         public static void UpdateGames(object sender, EventArgs args)
         {
             API.Instance.Database.Games.Update(API.Instance.MainView.SelectedGames);

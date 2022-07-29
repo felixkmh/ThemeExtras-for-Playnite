@@ -156,7 +156,6 @@ namespace Extras
         public static readonly PropertyInfo[] GameSettingsProperties 
             = typeof(GameProperties)
             .GetProperties()
-            .Where(p => p.GetCustomAttribute<GamePropertyAttribute>(false) != null)
             .ToArray();
         public static readonly PropertyInfo[] GameProperties = typeof(Game).GetProperties()
             .Where(p => p.CanRead && p.CanWrite)
