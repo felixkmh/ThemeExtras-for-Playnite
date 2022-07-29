@@ -112,7 +112,7 @@ namespace Extras
                     if (manifests?.FirstOrDefault(m => m.Value.Id == themeId) is var current && current.HasValue)
                     {
                         var themeDir = Path.GetDirectoryName(current.Value.Key);
-                        if (Directory.GetFiles(themeDir, "themeExtras.yaml").FirstOrDefault() is var extraManifestPath)
+                        if (!string.IsNullOrEmpty(themeDir) && Directory.GetFiles(themeDir, "themeExtras.yaml").FirstOrDefault() is string extraManifestPath)
                         {
                             using (var reader = File.OpenText(extraManifestPath))
                             {
