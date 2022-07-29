@@ -68,16 +68,19 @@ namespace Extras
                         Settings.Game.PropertyChanged -= Settings_PropertyChanged;
                         try
                         {
-                            if (property.PropertyType == gameProperty.PropertyType)
+                            foreach(var game in PlayniteApi.MainView.SelectedGames)
                             {
-                                var currentValue = gameProperty.GetValue(current);
-                                var newValue = property.GetValue(Settings.Game);
-                                if (!object.Equals(currentValue, newValue))
+                                if (property.PropertyType == gameProperty.PropertyType)
                                 {
-                                    gameProperty.SetValue(current, newValue);
-                                    PlayniteApi.Database.Games.Update(current);
+                                    var currentValue = gameProperty.GetValue(game);
+                                    var newValue = property.GetValue(Settings.Game);
+                                    if (!object.Equals(currentValue, newValue))
+                                    {
+                                        gameProperty.SetValue(game, newValue);
+                                    }
                                 }
                             }
+                            PlayniteApi.Database.Games.Update(PlayniteApi.MainView.SelectedGames);
                         }
                         catch (Exception ex)
                         {
@@ -169,10 +172,11 @@ namespace Extras
             var prevMode = lastView;
             lastSelected = args.NewValue;
             lastView = PlayniteApi.MainView.ActiveDesktopView;
-            if (prevMode != lastView && lastSelected == null && prevSelected != null)
+            if (prevMode != lastView && lastSelected == null && prevSelected != null && Settings.EnableSelectionPreservation)
             {
                 PlayniteApi.MainView.SelectGames(prevSelected.Select(g => g.Id));
             }
+
             if (args.NewValue?.FirstOrDefault() is Game current)
             {
                 foreach(var property in GameSettingsProperties)
