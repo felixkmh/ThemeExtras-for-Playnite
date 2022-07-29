@@ -97,6 +97,100 @@ namespace Extras
             }
         }
 
+        public override IEnumerable<GameMenuItem> GetGameMenuItems(GetGameMenuItemsArgs args)
+        {
+            Game GameMenu = args.Games.First();
+
+            List<GameMenuItem> gameMenuItems = new List<GameMenuItem>();
+
+            gameMenuItems.Add(new GameMenuItem
+            {
+                Description = "1 Star",
+                MenuSection = $"Theme Extras | Ratings | Set User Rating",
+                
+                Action = (mainMenuItem) =>
+                {
+                    var games = args.Games.Distinct();
+
+                    foreach (Game game in games)
+                    {
+                        game.UserScore = 20;
+                        Playnite.SDK.API.Instance.Database.Games.Update(game);
+                    }
+                }
+            });
+
+            gameMenuItems.Add(new GameMenuItem
+            {
+                Description = "2 Stars",
+                MenuSection = $"Theme Extras | Ratings | Set User Rating",
+
+                Action = (mainMenuItem) =>
+                {
+                    var games = args.Games.Distinct();
+
+                    foreach (Game game in games)
+                    {
+                        game.UserScore = 40;
+                        Playnite.SDK.API.Instance.Database.Games.Update(game);
+                    }
+                }
+            });
+
+            gameMenuItems.Add(new GameMenuItem
+            {
+                Description = "3 Stars",
+                MenuSection = $"Theme Extras | Ratings | Set User Rating",
+
+                Action = (mainMenuItem) =>
+                {
+                    var games = args.Games.Distinct();
+
+                    foreach (Game game in games)
+                    {
+                        game.UserScore = 60;
+                        Playnite.SDK.API.Instance.Database.Games.Update(game);
+                    }
+                }
+            });
+
+            gameMenuItems.Add(new GameMenuItem
+            {
+                Description = "4 Stars",
+                MenuSection = $"Theme Extras | Ratings | Set User Rating",
+
+                Action = (mainMenuItem) =>
+                {
+                    var games = args.Games.Distinct();
+
+                    foreach (Game game in games)
+                    {
+                        game.UserScore = 80;
+                        Playnite.SDK.API.Instance.Database.Games.Update(game);
+                    }
+                }
+            });
+
+            gameMenuItems.Add(new GameMenuItem
+            {
+                Description = "5 Stars",
+                MenuSection = $"Theme Extras | Ratings | Set User Rating",
+
+                Action = (mainMenuItem) =>
+                {
+                    var games = args.Games.Distinct();
+
+                    foreach (Game game in games)
+                    {
+                        game.UserScore = 100;
+                        Playnite.SDK.API.Instance.Database.Games.Update(game);
+                    }
+                }
+            });
+
+            return gameMenuItems;
+        }
+
         public override void OnGameInstalled(OnGameInstalledEventArgs args)
         {
             // Add code to be executed when game is finished installing.
