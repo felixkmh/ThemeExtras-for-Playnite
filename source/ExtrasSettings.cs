@@ -24,7 +24,7 @@ namespace Extras
         private GameProperties() {}
 
         private bool hidden;
-        public bool Hidden { get => hidden; set { var selected = API.Instance.MainView.SelectedGames; SetValue(ref hidden, value); API.Instance.MainView.SelectGames(selected.Select(g => g.Id)); } }
+        public bool Hidden { get => hidden; set => SetValue(ref hidden, value); }
 
         private string notes;
         public string Notes { get => notes; set => SetValue(ref notes, value); }

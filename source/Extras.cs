@@ -68,7 +68,9 @@ namespace Extras
                         Settings.Game.PropertyChanged -= Settings_PropertyChanged;
                         try
                         {
-                            foreach(var game in PlayniteApi.MainView.SelectedGames)
+                            var prevSelected = PlayniteApi.MainView.SelectedGames.ToList();
+                            var wasSet = false;
+                            foreach (var game in PlayniteApi.MainView.SelectedGames)
                             {
                                 if (property.PropertyType == gameProperty.PropertyType)
                                 {
@@ -77,10 +79,19 @@ namespace Extras
                                     if (!object.Equals(currentValue, newValue))
                                     {
                                         gameProperty.SetValue(game, newValue);
+                                        wasSet = true;
                                     }
                                 }
                             }
-                            PlayniteApi.Database.Games.Update(PlayniteApi.MainView.SelectedGames);
+                            if (wasSet)
+                            {
+                                PlayniteApi.Database.Games.Update(PlayniteApi.MainView.SelectedGames);
+                                if (gameProperty.Name == nameof(Game.Hidden))
+                                {
+                                    PlayniteApi.MainView.SelectGame(prevSelected.First().Id);
+                                    PlayniteApi.MainView.SelectGames(prevSelected.Select(g => g.Id));
+                                }
+                            }
                         }
                         catch (Exception ex)
                         {
