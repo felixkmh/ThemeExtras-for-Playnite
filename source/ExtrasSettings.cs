@@ -152,6 +152,82 @@ namespace Extras
                 }
                 return false;
             });
+
+        [DontSerialize]
+        public ICommand OpenPluginConfigDirCommand { get; }
+            = new RelayCommand<string>(
+            id =>
+            {
+                var api = API.Instance;
+                if (api.Addons?.Plugins?.FirstOrDefault(p => string.Equals(p.Id.ToString(), id, System.StringComparison.InvariantCultureIgnoreCase)) is Plugin plugin)
+                {
+                    try
+                    {
+                        System.Diagnostics.Process.Start(plugin.GetPluginUserDataPath());
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Extras.logger.Debug(ex, $"Failed to open config directory for plugin with Id: {id}");
+                    }
+                }
+            },
+            id =>
+            {
+                var api = API.Instance;
+                if (api.Addons?.Plugins?.FirstOrDefault(p => string.Equals(p.Id.ToString(), id, System.StringComparison.InvariantCultureIgnoreCase)) is Plugin plugin)
+                {
+                    return string.IsNullOrEmpty(plugin.GetPluginUserDataPath());
+                }
+                return false;
+            });
+
+        [DontSerialize]
+        public ICommand OpenPlayniteLogCommand { get; }
+            = new RelayCommand<string>(
+            id =>
+            {
+                var api = API.Instance;
+                if (api?.Paths?.ConfigurationPath is string path)
+                {
+                    var logPath = Path.Combine(path, "playnite.log");
+                    try
+                    {
+                        if (File.Exists(logPath))
+                        {
+                            System.Diagnostics.Process.Start(logPath);
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Extras.logger.Debug(ex, $"Failed to open {logPath}");
+                    }
+                }
+            },
+            id => true);
+
+        [DontSerialize]
+        public ICommand OpenExtensionsLogCommand { get; }
+            = new RelayCommand<string>(
+            id =>
+            {
+                var api = API.Instance;
+                if (api?.Paths?.ConfigurationPath is string path)
+                {
+                    var logPath = Path.Combine(path, "extensions.log");
+                    try
+                    {
+                        if (File.Exists(logPath))
+                        {
+                            System.Diagnostics.Process.Start(logPath);
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Extras.logger.Debug(ex, $"Failed to open {logPath}");
+                    }
+                }
+            },
+            id => true);
     }
 
     public class ExtrasSettingsViewModel : ObservableObject, ISettings
