@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -54,22 +55,24 @@ namespace Extras
             AddSettingsAsResources<IValueConverter>();
             AddSettingsAsResources<IMultiValueConverter>();
         }
-
+        
         private void AddSettingsAsResources<T>()
         {
             if (Application.Current is Application app)
             {
+                ResourceDictionary resourceDictionary = new ResourceDictionary();
                 var settings = Settings ?? new ExtrasSettings();
                 var settingsType = typeof(ExtrasSettings);
-                var properties = settingsType.GetProperties(Public | GetField);
+                var properties = settingsType.GetProperties();
                 var typedProperties = properties.Where(p => p.PropertyType == typeof(T));
+                var window = app.Windows.OfType<Window>().FirstOrDefault(w => w.Name == "WindowMain");
                 foreach (var typedProperty in typedProperties)
                 {
                     try
                     {
                         if (typedProperty.GetValue(settings) is T value)
                         {
-                            app.Resources[typedProperty.Name] = value;
+                            resourceDictionary[typedProperty.Name] = value;
                         }
                     }
                     catch (Exception ex)
@@ -77,6 +80,7 @@ namespace Extras
                         logger.Debug(ex, $"Failed to add {typedProperty.Name} as resource.");
                     }
                 }
+                app.Resources.MergedDictionaries.Add(resourceDictionary);
             }
         }
 
@@ -167,7 +171,7 @@ namespace Extras
                     var notInstalled = extrasManifest.Recommendations.Where(r => !PlayniteApi.Addons.Addons.Contains(r.AddonId)).ToHashSet();
                     if (notInstalled.Any())
                     {
-                        PlayniteApi.Dialogs.ShowMessage($"Found {notInstalled.Count} not installed recommendation{(notInstalled.Count > 1 ? "s" : "")} for your current theme:\n{string.Join("\n", notInstalled.Select(r => r.AddonName))}.\n\nDo you want to install them?", "Addon Recommendations", MessageBoxButton.YesNo);
+                        // PlayniteApi.Dialogs.ShowMessage($"Found {notInstalled.Count} not installed recommendation{(notInstalled.Count > 1 ? "s" : "")} for your current theme:\n{string.Join("\n", notInstalled.Select(r => r.AddonName))}.\n\nDo you want to install them?", "Addon Recommendations", MessageBoxButton.YesNo);
                     }
                 }
             }

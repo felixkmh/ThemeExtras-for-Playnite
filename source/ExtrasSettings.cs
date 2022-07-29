@@ -2,11 +2,14 @@
 using Playnite.SDK.Data;
 using Playnite.SDK.Models;
 using Playnite.SDK.Plugins;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 
 namespace Extras
@@ -16,10 +19,25 @@ namespace Extras
         [DontSerialize]
         public ObservableCollection<Game> RunningGames { get; } = new ObservableCollection<Game>();
 
-        private bool isAnyGameRunning = false;
 
+        private bool isAnyGameRunning = false;
         [DontSerialize]
         public bool IsAnyGameRunning { get => isAnyGameRunning; set => SetValue(ref isAnyGameRunning, value); }
+
+        [DontSerialize]
+        public IValueConverter IntToRatingBrushConverter { get; } = new Converters.IntToRatingBrushConverter();
+
+        public static void UpdateGames(object sender, EventArgs args)
+        {
+            API.Instance.Database.Games.Update(API.Instance.MainView.SelectedGames);
+        }
+
+        [DontSerialize]
+        public ICommand UpdateGamesCommand { get; }
+            = new RelayCommand(() =>
+            {
+                UpdateGames(null, null);
+            }, () => API.Instance?.MainView?.SelectedGames?.Count() > 0);
 
         [DontSerialize]
         public ICommand ResetScoreCommand { get; }
@@ -69,21 +87,26 @@ namespace Extras
                 return false;
             });
 
+        public static void OpenPlayniteSettings(object sender, EventArgs args)
+        {
+            if (Application.Current?.Windows?.OfType<Window>().FirstOrDefault(w => w.Name == "WindowMain") is Window mainWindow)
+            {
+                if (mainWindow.InputBindings.OfType<KeyBinding>().FirstOrDefault(b => b.Key == Key.F4) is KeyBinding binding)
+                {
+                    if (binding.Command.CanExecute(null))
+                    {
+                        binding.Command.Execute(null);
+                    }
+                }
+            }
+        }
+
         [DontSerialize]
         public ICommand OpenPlayniteSettingsCommand { get; }
             = new RelayCommand(
             () =>
             {
-                if (Application.Current?.Windows?.OfType<Window>().FirstOrDefault(w => w.Name == "WindowMain") is Window mainWindow)
-                {
-                    if (mainWindow.InputBindings.OfType<KeyBinding>().FirstOrDefault(b => b.Key == Key.F4) is KeyBinding binding)
-                    {
-                        if (binding.Command.CanExecute(null))
-                        {
-                            binding.Command.Execute(null);
-                        }
-                    }
-                }
+                OpenPlayniteSettings(null, null);
             },
             () => true);
 

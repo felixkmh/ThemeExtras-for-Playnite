@@ -52,8 +52,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Controls\CriticScore.xaml.cs">
-      <DependentUpon>CriticScore.xaml</DependentUpon>
+    <Compile Include="Controls\CriticRating.xaml.cs">
+      <DependentUpon>CriticRating.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\CommunityRating.xaml.cs">
       <DependentUpon>CommunityRating.xaml</DependentUpon>
@@ -61,6 +61,7 @@
     <Compile Include="Controls\UserRating.xaml.cs">
       <DependentUpon>UserRating.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Converters\IntToRatingBrushConverter.cs" />
     <Compile Include="Extras.cs" />
     <Compile Include="ExtrasSettings.cs" />
     <Compile Include="ExtrasSettingsView.xaml.cs">
@@ -77,7 +78,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Controls\CriticScore.xaml">
+    <Page Include="Controls\CriticRating.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
