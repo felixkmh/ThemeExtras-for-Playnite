@@ -86,7 +86,8 @@ namespace Extras
                             if (wasSet)
                             {
                                 PlayniteApi.Database.Games.Update(PlayniteApi.MainView.SelectedGames);
-                                if (gameProperty.Name == nameof(Game.Hidden))
+                                var newSelection = PlayniteApi.MainView.SelectedGames.ToList();
+                                if (!Enumerable.SequenceEqual(prevSelected, newSelection))
                                 {
                                     PlayniteApi.MainView.SelectGame(prevSelected.First().Id);
                                     PlayniteApi.MainView.SelectGames(prevSelected.Select(g => g.Id));
