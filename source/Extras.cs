@@ -120,7 +120,7 @@ namespace Extras
                             try
                             {
                                 var newValue = gameProperty.GetValue(editedGame);
-                                var currentValue = property.GetValue(Settings);
+                                var currentValue = property.GetValue(Settings.Game);
                                 if (property.PropertyType == gameProperty.PropertyType
                                     && !object.Equals(currentValue,newValue))
                                 {
