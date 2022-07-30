@@ -410,7 +410,12 @@ namespace Extras
             {
                 Application.Current.Resources.Add("Extras_EmptyStarBrush", new SolidColorBrush(Colors.White) { Opacity = 0.3 });
             }
-            return elementCache.GetOrGenerate(args.Name);
+            string name = args.Name;
+            if (name.EndsWith("1") || name.EndsWith("2"))
+            {
+                name = name.Substring(0, name.Length - 1);
+            }
+            return elementCache.GetOrGenerate(name);
         }
 
         private Control GenerateCustomElement(string name)
