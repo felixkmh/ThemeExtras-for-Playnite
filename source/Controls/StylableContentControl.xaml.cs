@@ -28,6 +28,16 @@ namespace Extras.Controls
         private StylableContentControl()
         {
             InitializeComponent();
+            Unloaded += StylableContentControl_Unloaded;
+        }
+
+        private void StylableContentControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ViewModel.Dispose();
+            }
+            catch (Exception) { }
         }
 
         public StylableContentControl(IStylableViewModel viewModel) : this()
@@ -41,5 +51,12 @@ namespace Extras.Controls
             ViewModel.Game = newContext;
         }
 
+        ~StylableContentControl()
+        {
+            try
+            {
+                ViewModel.Dispose();
+            } catch (Exception) {}
+        }
     }
 }
