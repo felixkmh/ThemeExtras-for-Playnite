@@ -211,6 +211,7 @@ namespace Extras
             Settings.Game.PropertyChanged += Settings_PropertyChanged;
         }
 
+        //Context Menus
         public override IEnumerable<GameMenuItem> GetGameMenuItems(GetGameMenuItemsArgs args)
         {
             Game selectedGame = args.Games.First();
@@ -409,6 +410,10 @@ namespace Extras
             if (!Application.Current.Resources.Contains("Extras_EmptyStarBrush"))
             {
                 Application.Current.Resources.Add("Extras_EmptyStarBrush", new SolidColorBrush(Colors.White) { Opacity = 0.3 });
+            }
+            if (!Application.Current.Resources.Contains("Extras_CompletionDropDownArrow"))
+            {
+                Application.Current.Resources.Add("Extras_CompletionDropDownArrow", new SolidColorBrush(Colors.White));
             }
             switch (args.Name)
             {

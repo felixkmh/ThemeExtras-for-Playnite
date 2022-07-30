@@ -25,7 +25,7 @@ namespace Extras.Controls
     /// </summary>
     public partial class CompletionStatus : Playnite.SDK.Controls.PluginUserControl
     {
-        ObservableCollection<Playnite.SDK.Models.CompletionStatus> statuses = new ObservableCollection<Playnite.SDK.Models.CompletionStatus>();
+        private ObservableCollection<Playnite.SDK.Models.CompletionStatus> completionStatuses;
 
         public CompletionStatus()
         {
@@ -35,19 +35,6 @@ namespace Extras.Controls
 
         private void CompletionStatus_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            Playnite.SDK.Models.CompletionStatus completion;
-
-            foreach (var singleStatus in Playnite.SDK.API.Instance.Database.CompletionStatuses)
-            {
-                completion = new Playnite.SDK.Models.CompletionStatus
-                {
-                    Id = singleStatus.Id,
-                    Name = singleStatus.Name
-                };
-                statuses.Add(completion);
-            }
-
-            CompletionComboBox.ItemsSource = statuses;
 
             if (e!= null && !(e.NewValue is Visibility.Visible))
             {
@@ -57,7 +44,15 @@ namespace Extras.Controls
 
         public override void GameContextChanged(Game oldContext, Game newContext)
         {
+
+            if (completionStatuses == null || !API.Instance.Database.CompletionStatuses.IsListEqual(completionStatuses.DefaultIfEmpty()))
+            {
+                completionStatuses = new ObservableCollection<Playnite.SDK.Models.CompletionStatus>(API.Instance.Database.CompletionStatuses);
+
+            }
+
             base.GameContextChanged(oldContext, newContext);
+            CompletionComboBox.ItemsSource = completionStatuses;
             CompletionComboBox.DataContext = newContext;
         }
 
