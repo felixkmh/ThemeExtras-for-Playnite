@@ -1,4 +1,5 @@
 ﻿using Playnite.SDK;
+using Playnite.SDK.Data;
 using Playnite.SDK.Events;
 using Playnite.SDK.Models;
 using Playnite.SDK.Plugins;
@@ -26,6 +27,10 @@ namespace Extras
         internal const string UserRatingElement = "UserRating";
         internal const string CommunityRatingElement = "CommunityRating";
         internal const string CriticRatingElement = "CriticRating";
+        internal const string SettableCompletionStatus = "SettableCompletionStatus";
+        internal const string SettableFavorite = "SettableFavorite";
+        internal const string SettableHidden = "SettableHidden";
+        internal const string SettableUserScore = "SettableUserScore";
 
         public ExtrasSettings Settings => settingsViewModel?.Settings;
         public ExtrasSettingsViewModel settingsViewModel { get; set; }
@@ -46,6 +51,10 @@ namespace Extras
                 SourceName = ExtensionName,
                 ElementList = new List<string>
                 {
+                    SettableCompletionStatus,
+                    SettableFavorite,
+                    SettableHidden,
+                    SettableUserScore,
                     UserRatingElement,
                     CommunityRatingElement,
                     CriticRatingElement
@@ -342,19 +351,13 @@ namespace Extras
                 var themeId = PlayniteApi.ApplicationSettings.DesktopTheme;
                 var themesDir = Path.Combine(PlayniteApi.Paths.ConfigurationPath, "Themes", "Desktop");
                 var manifestPaths = Directory.GetFiles(themesDir, "theme.yaml", SearchOption.AllDirectories);
-                var yaml = new YamlDotNet.Serialization.DeserializerBuilder()
-                    .IgnoreUnmatchedProperties()
-                    .Build();
                 var manifests = await Task.Run(() =>
                 {
                     return manifestPaths.ToDictionary(p => p, p =>
                     {
                         try
                         {
-                            using (var reader = File.OpenText(p))
-                            {
-                                return yaml.Deserialize<Models.ThemeManifest>(reader);
-                            }
+                            return Serialization.FromYamlFile<Models.ThemeManifest>(p);
                         }
                         catch (Exception ex){
                             Extras.logger.Debug(ex, $"Failed to deserialize manifest file at ${p}.");
@@ -372,16 +375,13 @@ namespace Extras
                             var themeDir = Path.GetDirectoryName(current.Value.Key);
                             if (!string.IsNullOrEmpty(themeDir) && Directory.GetFiles(themeDir, "themeExtras.yaml").FirstOrDefault() is string extraManifestPath)
                             {
-                                using (var reader = File.OpenText(extraManifestPath))
-                                {
-                                        return yaml.Deserialize<Models.ThemeExtrasManifest>(reader);
-                                    }
-                                }
+                                return Serialization.FromYamlFile<Models.ThemeExtrasManifest>(extraManifestPath);
                             }
                         }
+                    }
                     catch (Exception ex)
                     {
-                        Extras.logger.Debug(ex, "Failed to deserialize extra manifest file.");
+                        logger.Debug(ex, "Failed to deserialize extra manifest file.");
                     }
                     return null;
                 });
@@ -409,6 +409,14 @@ namespace Extras
             }
             switch (args.Name)
             {
+                case string s when s.StartsWith(SettableCompletionStatus):
+                    return new Controls.StylableContentControl(new ViewModels.CompletionStatusViewModel());
+                case string s when s.StartsWith(SettableFavorite):
+                    return new Controls.StylableContentControl(new ViewModels.FavoriteViewModel());
+                case string s when s.StartsWith(SettableHidden):
+                    return new Controls.StylableContentControl(new ViewModels.GamePropertyViewModel<bool>(nameof(Game.Hidden), g => g.Hidden, (g, v) => g.Hidden = v));
+                case string s when s.StartsWith(SettableUserScore):
+                    return new Controls.StylableContentControl(new ViewModels.GamePropertyViewModel<int?>(nameof(Game.UserScore), g => g.UserScore, (g, v) => g.UserScore = v));
                 case string s when s.StartsWith(UserRatingElement):
                     return new Controls.UserRating();
                 case string s when s.StartsWith(CommunityRatingElement):
