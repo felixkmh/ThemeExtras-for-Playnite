@@ -1,0 +1,14 @@
+﻿<sdk:PluginUserControl x:Class="Extras.Controls.CompletionStatus"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:sdk="clr-namespace:Playnite.SDK.Controls;assembly=Playnite.SDK"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:local="clr-namespace:Extras.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="100" d:DesignWidth="300"
+             d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type=local:CompletionStatus}">
+    <ComboBox x:Name="CompletionComboBox" d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type={x:Type Game}}"
+              Cursor="Hand" Text="{Binding CompletionStatus.Name}" ItemsSource="{Binding CompletionStatusId}" SelectionChanged="CompletionComboBox_SelectionChanged"/>
+</sdk:PluginUserControl>

@@ -58,6 +58,9 @@
     <Compile Include="Controls\CommunityRating.xaml.cs">
       <DependentUpon>CommunityRating.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\CompletionStatus.xaml.cs">
+      <DependentUpon>CompletionStatus.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\UserRating.xaml.cs">
       <DependentUpon>UserRating.xaml</DependentUpon>
     </Compile>
@@ -83,6 +86,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\CommunityRating.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\CompletionStatus.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

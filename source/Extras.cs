@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -26,6 +27,7 @@ namespace Extras
         internal const string UserRatingElement = "UserRating";
         internal const string CommunityRatingElement = "CommunityRating";
         internal const string CriticRatingElement = "CriticRating";
+        internal const string CompletionStatusElement = "CompletionStatus";
 
         public ExtrasSettings Settings => settingsViewModel?.Settings;
         public ExtrasSettingsViewModel settingsViewModel { get; set; }
@@ -48,8 +50,9 @@ namespace Extras
                 {
                     UserRatingElement,
                     CommunityRatingElement,
-                    CriticRatingElement
-                }.SelectMany(e => Enumerable.Range(0, 3).Select(i => e + (i == 0 ? "" : i.ToString()))).ToList()
+                    CriticRatingElement,
+                    CompletionStatusElement
+                }.SelectMany(e => Enumerable.Range(0, 4).Select(i => e + (i == 0 ? "" : i.ToString()))).ToList()
             });
             AddSettingsSupport(new AddSettingsSupportArgs { SourceName = ExtensionName, SettingsRoot = "settingsViewModel.Settings" });
 
@@ -415,6 +418,8 @@ namespace Extras
                     return new Controls.CommunityRating();
                 case string s when s.StartsWith(CriticRatingElement):
                     return new Controls.CriticRating();
+                case string s when s.StartsWith(CompletionStatusElement):
+                    return new Controls.CompletionStatus();
                 default:
                     return null;
             }
