@@ -37,6 +37,8 @@ namespace Extras
 
         public override Guid Id { get; } = Guid.Parse("d2039edd-78f5-47c5-b190-72afef560fbe");
 
+        private CustomElementCache<Control> elementCache;
+
         public Extras(IPlayniteAPI api) : base(api)
         {
             settingsViewModel = new ExtrasSettingsViewModel(this);
@@ -61,6 +63,7 @@ namespace Extras
                 }.SelectMany(e => Enumerable.Range(0, 3).Select(i => e + (i == 0 ? "" : i.ToString()))).ToList()
             });
             AddSettingsSupport(new AddSettingsSupportArgs { SourceName = ExtensionName, SettingsRoot = "settingsViewModel.Settings" });
+            elementCache = new CustomElementCache<Control>(GenerateCustomElement);
 
             AddPropertiesAsResources<ICommand>(Settings.Commands);
         }
@@ -407,7 +410,12 @@ namespace Extras
             {
                 Application.Current.Resources.Add("Extras_EmptyStarBrush", new SolidColorBrush(Colors.White) { Opacity = 0.3 });
             }
-            switch (args.Name)
+            return elementCache.GetOrGenerate(args.Name);
+        }
+
+        private Control GenerateCustomElement(string name)
+        {
+            switch (name)
             {
                 case string s when s.StartsWith(SettableCompletionStatus):
                     return new Controls.StylableContentControl(new ViewModels.CompletionStatusViewModel());
