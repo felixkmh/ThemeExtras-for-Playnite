@@ -61,7 +61,6 @@ namespace Extras
                 }.SelectMany(e => Enumerable.Range(0, 3).Select(i => e + (i == 0 ? "" : i.ToString()))).ToList()
             });
             AddSettingsSupport(new AddSettingsSupportArgs { SourceName = ExtensionName, SettingsRoot = "settingsViewModel.Settings" });
-            elementCache = new CustomElementCache<Control>(GenerateCustomElement);
 
             AddPropertiesAsResources<ICommand>(Settings.Commands);
         }
