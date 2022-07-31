@@ -49,11 +49,8 @@ namespace Extras
         {
             var element = sender as T;
             var name = element.Tag as string;
-            if (element.Parent == null)
-            {
-                element.Unloaded -= Element_Unloaded;
-                cache[name].Push(element);
-            }
+            element.Unloaded -= Element_Unloaded;
+            cache[name].Push(element);
         }
 
         Dictionary<string, Stack<T>> cache = new Dictionary<string, Stack<T>>();

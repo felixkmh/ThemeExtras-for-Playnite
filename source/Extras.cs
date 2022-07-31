@@ -37,8 +37,6 @@ namespace Extras
 
         public override Guid Id { get; } = Guid.Parse("d2039edd-78f5-47c5-b190-72afef560fbe");
 
-        private CustomElementCache<Control> elementCache;
-
         public Extras(IPlayniteAPI api) : base(api)
         {
             settingsViewModel = new ExtrasSettingsViewModel(this);
@@ -415,26 +413,26 @@ namespace Extras
             {
                 name = name.Substring(0, name.Length - 1);
             }
-            return elementCache.GetOrGenerate(name);
+            return GenerateCustomElement(name);
         }
 
         private Control GenerateCustomElement(string name)
         {
             switch (name)
             {
-                case string s when s.StartsWith(SettableCompletionStatus):
+                case SettableCompletionStatus:
                     return new Controls.StylableUserControl(new ViewModels.CompletionStatusViewModel());
-                case string s when s.StartsWith(SettableFavorite):
+                case SettableFavorite:
                     return new Controls.StylableUserControl(new ViewModels.FavoriteViewModel());
-                case string s when s.StartsWith(SettableHidden):
+                case SettableHidden:
                     return new Controls.StylableUserControl(new ViewModels.GamePropertyViewModel<bool>(nameof(Game.Hidden), g => g.Hidden, (g, v) => g.Hidden = v));
-                case string s when s.StartsWith(SettableUserScore):
+                case SettableUserScore:
                     return new Controls.StylableUserControl(new ViewModels.GamePropertyViewModel<int?>(nameof(Game.UserScore), g => g.UserScore, (g, v) => g.UserScore = v));
-                case string s when s.StartsWith(UserRatingElement):
+                case UserRatingElement:
                     return new Controls.UserRating();
-                case string s when s.StartsWith(CommunityRatingElement):
+                case CommunityRatingElement:
                     return new Controls.CommunityRating();
-                case string s when s.StartsWith(CriticRatingElement):
+                case CriticRatingElement:
                     return new Controls.CriticRating();
                 default:
                     return null;
