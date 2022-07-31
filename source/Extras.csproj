@@ -49,8 +49,8 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Controls\StylableContentControl.xaml.cs">
-      <DependentUpon>StylableContentControl.xaml</DependentUpon>
+    <Compile Include="Controls\StylableUserControl.xaml.cs">
+      <DependentUpon>StylableUserControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\CriticRating.xaml.cs">
       <DependentUpon>CriticRating.xaml</DependentUpon>
@@ -83,7 +83,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Controls\StylableContentControl.xaml">
+    <Page Include="Controls\StylableUserControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -423,13 +423,13 @@ namespace Extras
             switch (name)
             {
                 case string s when s.StartsWith(SettableCompletionStatus):
-                    return new Controls.StylableContentControl(new ViewModels.CompletionStatusViewModel());
+                    return new Controls.StylableUserControl(new ViewModels.CompletionStatusViewModel());
                 case string s when s.StartsWith(SettableFavorite):
-                    return new Controls.StylableContentControl(new ViewModels.FavoriteViewModel());
+                    return new Controls.StylableUserControl(new ViewModels.FavoriteViewModel());
                 case string s when s.StartsWith(SettableHidden):
-                    return new Controls.StylableContentControl(new ViewModels.GamePropertyViewModel<bool>(nameof(Game.Hidden), g => g.Hidden, (g, v) => g.Hidden = v));
+                    return new Controls.StylableUserControl(new ViewModels.GamePropertyViewModel<bool>(nameof(Game.Hidden), g => g.Hidden, (g, v) => g.Hidden = v));
                 case string s when s.StartsWith(SettableUserScore):
-                    return new Controls.StylableContentControl(new ViewModels.GamePropertyViewModel<int?>(nameof(Game.UserScore), g => g.UserScore, (g, v) => g.UserScore = v));
+                    return new Controls.StylableUserControl(new ViewModels.GamePropertyViewModel<int?>(nameof(Game.UserScore), g => g.UserScore, (g, v) => g.UserScore = v));
                 case string s when s.StartsWith(UserRatingElement):
                     return new Controls.UserRating();
                 case string s when s.StartsWith(CommunityRatingElement):
