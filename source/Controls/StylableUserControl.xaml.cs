@@ -30,11 +30,21 @@ namespace Extras.Controls
             InitializeComponent();
         }
 
+        protected override void OnVisualParentChanged(DependencyObject oldParent)
+        {
+            base.OnVisualParentChanged(oldParent);
+            ParentChanged?.Invoke(this, new DependencyPropertyChangedEventArgs(null, oldParent, Parent));
+        }
+
+        public event DependencyPropertyChangedEventHandler ParentChanged;
+
         public StylableUserControl(IStylableViewModel viewModel) : this()
         {
             ViewModel = viewModel;
             UserControl.DataContext = viewModel;
         }
+
+        
 
         public override void GameContextChanged(Game oldContext, Game newContext)
         {
