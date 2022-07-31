@@ -42,10 +42,6 @@ namespace Extras
                 element.Tag = name;
                 element.Unloaded += Element_Unloaded;
             }
-            if (elements == null)
-            {
-
-            }
             return element;
         }
 
