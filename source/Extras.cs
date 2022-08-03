@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -41,7 +40,7 @@ namespace Extras
         public Extras(IPlayniteAPI api) : base(api)
         {
             settingsViewModel = new ExtrasSettingsViewModel(this);
-            
+
             Properties = new GenericPluginProperties
             {
                 HasSettings = true
@@ -58,9 +57,8 @@ namespace Extras
                     SettableUserScore,
                     UserRatingElement,
                     CommunityRatingElement,
-                    CriticRatingElement,
-                    CompletionStatusElement
-                }.SelectMany(e => Enumerable.Range(0, 4).Select(i => e + (i == 0 ? "" : i.ToString()))).ToList()
+                    CriticRatingElement
+                }.SelectMany(e => Enumerable.Range(0, 3).Select(i => e + (i == 0 ? "" : i.ToString()))).ToList()
             });
             AddSettingsSupport(new AddSettingsSupportArgs { SourceName = ExtensionName, SettingsRoot = "settingsViewModel.Settings" });
 
@@ -133,7 +131,7 @@ namespace Extras
                                 var newValue = gameProperty.GetValue(editedGame);
                                 var currentValue = property.GetValue(Settings.Game);
                                 if (property.PropertyType == gameProperty.PropertyType
-                                    && !object.Equals(currentValue,newValue))
+                                    && !object.Equals(currentValue, newValue))
                                 {
                                     property.SetValue(Settings.Game, newValue);
                                 }
@@ -179,7 +177,7 @@ namespace Extras
         DesktopView lastView;
         IEnumerable<Game> lastSelected;
 
-        public static readonly PropertyInfo[] GameSettingsProperties 
+        public static readonly PropertyInfo[] GameSettingsProperties
             = typeof(GameProperties)
             .GetProperties()
             .ToArray();
@@ -202,7 +200,7 @@ namespace Extras
 
             if (args.NewValue?.FirstOrDefault() is Game current)
             {
-                foreach(var property in GameSettingsProperties)
+                foreach (var property in GameSettingsProperties)
                 {
                     if (GameProperties.FirstOrDefault(p => p.Name == property.Name) is PropertyInfo gameProperty)
                     {
@@ -219,7 +217,6 @@ namespace Extras
             Settings.Game.PropertyChanged += Settings_PropertyChanged;
         }
 
-        //Context Menus
         public override IEnumerable<GameMenuItem> GetGameMenuItems(GetGameMenuItemsArgs args)
         {
             Game selectedGame = args.Games.First();
@@ -362,7 +359,8 @@ namespace Extras
                         {
                             return Serialization.FromYamlFile<Models.ThemeManifest>(p);
                         }
-                        catch (Exception ex){
+                        catch (Exception ex)
+                        {
                             Extras.logger.Debug(ex, $"Failed to deserialize manifest file at ${p}.");
                         }
                         return null;
@@ -412,8 +410,6 @@ namespace Extras
             }
             string name = args.Name;
             if (name.EndsWith("1") || name.EndsWith("2"))
-                Application.Current.Resources.Add("Extras_CompletionDropDownArrow", new SolidColorBrush(Colors.White));
-            }
             {
                 name = name.Substring(0, name.Length - 1);
             }
@@ -438,8 +434,6 @@ namespace Extras
                     return new Controls.CommunityRating();
                 case CriticRatingElement:
                     return new Controls.CriticRating();
-                case string s when s.StartsWith(CompletionStatusElement):
-                    return new Controls.CompletionStatus();
                 default:
                     return null;
             }
