@@ -31,12 +31,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Playnite.SDK, Version=6.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Users\fholl\AppData\Local\Playnite\Playnite.SDK.dll</HintPath>
+    <Reference Include="Playnite.SDK, Version=6.2.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\PlayniteSDK.6.2.2\lib\net462\Playnite.SDK.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="PresentationFramework.Aero2" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xaml" />
@@ -57,6 +57,9 @@
     </Compile>
     <Compile Include="Controls\CommunityRating.xaml.cs">
       <DependentUpon>CommunityRating.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\CompletionStatus.xaml.cs">
+      <DependentUpon>CompletionStatus.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\UserRating.xaml.cs">
       <DependentUpon>UserRating.xaml</DependentUpon>
@@ -93,6 +96,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\CommunityRating.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\CompletionStatus.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

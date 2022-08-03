@@ -44,7 +44,7 @@ namespace Extras
         {
             Instance = this;
             settingsViewModel = new ExtrasSettingsViewModel(this);
-            
+
             Properties = new GenericPluginProperties
             {
                 HasSettings = true
@@ -141,7 +141,7 @@ namespace Extras
                                 var newValue = gameProperty.GetValue(editedGame);
                                 var currentValue = property.GetValue(Settings.Game);
                                 if (property.PropertyType == gameProperty.PropertyType
-                                    && !object.Equals(currentValue,newValue))
+                                    && !object.Equals(currentValue, newValue))
                                 {
                                     property.SetValue(Settings.Game, newValue);
                                 }
@@ -187,7 +187,7 @@ namespace Extras
         DesktopView lastView;
         IEnumerable<Game> lastSelected;
 
-        public static readonly PropertyInfo[] GameSettingsProperties 
+        public static readonly PropertyInfo[] GameSettingsProperties
             = typeof(GameProperties)
             .GetProperties()
             .ToArray();
@@ -210,7 +210,7 @@ namespace Extras
 
             if (args.NewValue?.FirstOrDefault() is Game current)
             {
-                foreach(var property in GameSettingsProperties)
+                foreach (var property in GameSettingsProperties)
                 {
                     if (GameProperties.FirstOrDefault(p => p.Name == property.Name) is PropertyInfo gameProperty)
                     {
@@ -369,7 +369,8 @@ namespace Extras
                         {
                             return Serialization.FromYamlFile<Models.ThemeManifest>(p);
                         }
-                        catch (Exception ex){
+                        catch (Exception ex)
+                        {
                             Extras.logger.Debug(ex, $"Failed to deserialize manifest file at ${p}.");
                         }
                         return null;
@@ -417,6 +418,10 @@ namespace Extras
             {
                 Application.Current.Resources.Add("Extras_EmptyStarBrush", new SolidColorBrush(Colors.White) { Opacity = 0.3 });
             }
+            if (!Application.Current.Resources.Contains("Extras_CompletionTextColor"))
+            {
+                Application.Current.Resources.Add("Extras_CompletionTextColor", new SolidColorBrush(Colors.White) { Opacity = 1 });
+            }
             string name = args.Name;
             if (name.EndsWith("1") || name.EndsWith("2"))
             {
@@ -430,7 +435,7 @@ namespace Extras
             switch (name)
             {
                 case SettableCompletionStatus:
-                    return new Controls.StylableUserControl(new ViewModels.CompletionStatusViewModel());
+                    return new Controls.CompletionStatus(new ViewModels.CompletionStatusViewModel());
                 case SettableFavorite:
                     return new Controls.StylableUserControl(new ViewModels.FavoriteViewModel());
                 case SettableHidden:

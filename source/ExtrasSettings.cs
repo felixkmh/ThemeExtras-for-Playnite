@@ -31,6 +31,9 @@ namespace Extras
 
         private bool favorite;
         public bool Favorite { get => favorite; set => SetValue(ref favorite, value); }
+
+        private string completion;
+        public string Completion { get => completion; set => SetValue(ref completion, value); }
     }
 
     public class ExtrasSettings : ObservableObject
