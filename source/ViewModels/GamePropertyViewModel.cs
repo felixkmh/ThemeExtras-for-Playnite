@@ -87,6 +87,7 @@ namespace Extras.ViewModels
             if (oldValue is Game)
             {
                 oldValue.PropertyChanged -= Game_PropertyChanged;
+                // Playnite.SDK.API.Instance.Database.Games.Update(oldValue);
             }
             if (newValue is Game)
             {

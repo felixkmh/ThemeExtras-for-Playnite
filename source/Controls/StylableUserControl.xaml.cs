@@ -49,7 +49,6 @@ namespace Extras.Controls
         public override void GameContextChanged(Game oldContext, Game newContext)
         {
             ViewModel.Game = newContext;
-            UserControl.DataContext = ViewModel;
         }
 
         ~StylableUserControl()

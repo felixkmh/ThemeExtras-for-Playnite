@@ -10,8 +10,8 @@ namespace Extras.ViewModels
 {
     public class CompletionStatusViewModel : GamePropertyViewModel<CompletionStatus>
     {
-        private static IEnumerable<CompletionStatus> completionStatusOptions = null;
-        public IEnumerable<CompletionStatus> CompletionStatusOptions
+        private static List<CompletionStatus> completionStatusOptions = null;
+        public List<CompletionStatus> CompletionStatusOptions
         {
             get => completionStatusOptions;
             set => SetValue(ref completionStatusOptions, value);
@@ -31,7 +31,7 @@ namespace Extras.ViewModels
             var completionStatuses = Playnite.SDK.API.Instance.Database.CompletionStatuses;
             if (CompletionStatusOptions is null)
             {
-                CompletionStatusOptions = new CompletionStatus[] { Playnite.SDK.Models.CompletionStatus.Empty }.Concat(completionStatuses.OfType<CompletionStatus>());
+                CompletionStatusOptions = new CompletionStatus[] { Playnite.SDK.Models.CompletionStatus.Empty }.Concat(completionStatuses.OfType<CompletionStatus>()).ToList();
             }
             base.GameChanged(oldValue, newValue);
         }
@@ -39,7 +39,7 @@ namespace Extras.ViewModels
         private void CompletionStatuses_ItemCollectionChanged(object sender, Playnite.SDK.ItemCollectionChangedEventArgs<Playnite.SDK.Models.CompletionStatus> e)
         {
             var completionStatuses = Playnite.SDK.API.Instance.Database.CompletionStatuses;
-            CompletionStatusOptions = new CompletionStatus[] { Playnite.SDK.Models.CompletionStatus.Empty }.Concat(completionStatuses.OfType<CompletionStatus>());
+            CompletionStatusOptions = new CompletionStatus[] { Playnite.SDK.Models.CompletionStatus.Empty }.Concat(completionStatuses.OfType<CompletionStatus>()).ToList();
         }
 
         public override void Dispose()

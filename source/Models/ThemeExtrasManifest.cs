@@ -18,12 +18,16 @@ namespace Extras.Models
             public string AddonId { get; set; }
             public List<string> Features { get; set; }
             [DontSerialize]
-            public IEnumerable<string> FeaturesLocalized => Features.Select(f => f.StartsWith("LOC") ? ResourceProvider.GetString(f) : f);
+            internal IEnumerable<string> FeaturesLocalized => Features.Select(f => f.StartsWith("LOC") ? ResourceProvider.GetString(f) : f);
             [DontSerialize]
-            public string AddonInstallUri => string.Format(InstallUri, AddonName);
+            internal string AddonInstallUri => string.Format(InstallUri, AddonName);
         }
 
         public string ThemeId { get; set; }
         public List<Recommendation> Recommendations { get; set; }
+
+        public List<string> PersistentPaths { get; set; }
+
+        public DateTime? LastBackup { get; set; } = null;
     }
 }

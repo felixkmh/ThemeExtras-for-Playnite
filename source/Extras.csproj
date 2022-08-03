@@ -63,6 +63,7 @@
     </Compile>
     <Compile Include="Converters\IntToRatingBrushConverter.cs" />
     <Compile Include="CustomElementCache.cs" />
+    <Compile Include="ExtendedTheme.cs" />
     <Compile Include="Extras.cs" />
     <Compile Include="ExtrasSettings.cs" />
     <Compile Include="ExtrasSettingsView.xaml.cs">

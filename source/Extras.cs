@@ -22,6 +22,7 @@ namespace Extras
     public class Extras : GenericPlugin
     {
         internal static readonly ILogger logger = LogManager.GetLogger();
+        internal static Extras Instance { get; private set; }
 
         internal const string ExtensionName = "ThemeExtras";
         internal const string UserRatingElement = "UserRating";
@@ -31,6 +32,8 @@ namespace Extras
         internal const string SettableFavorite = "SettableFavorite";
         internal const string SettableHidden = "SettableHidden";
         internal const string SettableUserScore = "SettableUserScore";
+        internal const string ExtrasManifestFileName = "themeExtras.yaml";
+        internal const string ThemeManifestFileName = "theme.yaml";
 
         public ExtrasSettings Settings => settingsViewModel?.Settings;
         public ExtrasSettingsViewModel settingsViewModel { get; set; }
@@ -39,6 +42,7 @@ namespace Extras
 
         public Extras(IPlayniteAPI api) : base(api)
         {
+            Instance = this;
             settingsViewModel = new ExtrasSettingsViewModel(this);
             
             Properties = new GenericPluginProperties
@@ -63,6 +67,12 @@ namespace Extras
             AddSettingsSupport(new AddSettingsSupportArgs { SourceName = ExtensionName, SettingsRoot = "settingsViewModel.Settings" });
 
             AddPropertiesAsResources<ICommand>(Settings.Commands);
+
+            var extendedThemes = ExtendedTheme.CreateExtendedManifests().ToList();
+            foreach (var theme in extendedThemes)
+            {
+                theme.Restore();
+            }
         }
 
         private void Settings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -373,7 +383,7 @@ namespace Extras
                         if (manifests?.FirstOrDefault(m => m.Value.Id == themeId) is var current && current.HasValue)
                         {
                             var themeDir = Path.GetDirectoryName(current.Value.Key);
-                            if (!string.IsNullOrEmpty(themeDir) && Directory.GetFiles(themeDir, "themeExtras.yaml").FirstOrDefault() is string extraManifestPath)
+                            if (!string.IsNullOrEmpty(themeDir) && Directory.GetFiles(themeDir, ExtrasManifestFileName).FirstOrDefault() is string extraManifestPath)
                             {
                                 return Serialization.FromYamlFile<Models.ThemeExtrasManifest>(extraManifestPath);
                             }
@@ -441,6 +451,11 @@ namespace Extras
         public override void OnApplicationStopped(OnApplicationStoppedEventArgs args)
         {
             // Add code to be executed when Playnite is shutting down.
+            var extendedThemes = ExtendedTheme.CreateExtendedManifests().ToList();
+            foreach (var theme in extendedThemes)
+            {
+                theme.Backup();
+            }
         }
 
         public override void OnLibraryUpdated(OnLibraryUpdatedEventArgs args)
