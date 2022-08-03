@@ -1,4 +1,5 @@
 ﻿using Playnite.SDK;
+using Playnite.SDK.Data;
 using Playnite.SDK.Events;
 using Playnite.SDK.Models;
 using Playnite.SDK.Plugins;
@@ -27,7 +28,10 @@ namespace Extras
         internal const string UserRatingElement = "UserRating";
         internal const string CommunityRatingElement = "CommunityRating";
         internal const string CriticRatingElement = "CriticRating";
-        internal const string CompletionStatusElement = "CompletionStatus";
+        internal const string SettableCompletionStatus = "SettableCompletionStatus";
+        internal const string SettableFavorite = "SettableFavorite";
+        internal const string SettableHidden = "SettableHidden";
+        internal const string SettableUserScore = "SettableUserScore";
 
         public ExtrasSettings Settings => settingsViewModel?.Settings;
         public ExtrasSettingsViewModel settingsViewModel { get; set; }
@@ -48,6 +52,10 @@ namespace Extras
                 SourceName = ExtensionName,
                 ElementList = new List<string>
                 {
+                    SettableCompletionStatus,
+                    SettableFavorite,
+                    SettableHidden,
+                    SettableUserScore,
                     UserRatingElement,
                     CommunityRatingElement,
                     CriticRatingElement,
@@ -346,19 +354,13 @@ namespace Extras
                 var themeId = PlayniteApi.ApplicationSettings.DesktopTheme;
                 var themesDir = Path.Combine(PlayniteApi.Paths.ConfigurationPath, "Themes", "Desktop");
                 var manifestPaths = Directory.GetFiles(themesDir, "theme.yaml", SearchOption.AllDirectories);
-                var yaml = new YamlDotNet.Serialization.DeserializerBuilder()
-                    .IgnoreUnmatchedProperties()
-                    .Build();
                 var manifests = await Task.Run(() =>
                 {
                     return manifestPaths.ToDictionary(p => p, p =>
                     {
                         try
                         {
-                            using (var reader = File.OpenText(p))
-                            {
-                                return yaml.Deserialize<Models.ThemeManifest>(reader);
-                            }
+                            return Serialization.FromYamlFile<Models.ThemeManifest>(p);
                         }
                         catch (Exception ex){
                             Extras.logger.Debug(ex, $"Failed to deserialize manifest file at ${p}.");
@@ -376,16 +378,13 @@ namespace Extras
                             var themeDir = Path.GetDirectoryName(current.Value.Key);
                             if (!string.IsNullOrEmpty(themeDir) && Directory.GetFiles(themeDir, "themeExtras.yaml").FirstOrDefault() is string extraManifestPath)
                             {
-                                using (var reader = File.OpenText(extraManifestPath))
-                                {
-                                        return yaml.Deserialize<Models.ThemeExtrasManifest>(reader);
-                                    }
-                                }
+                                return Serialization.FromYamlFile<Models.ThemeExtrasManifest>(extraManifestPath);
                             }
                         }
+                    }
                     catch (Exception ex)
                     {
-                        Extras.logger.Debug(ex, "Failed to deserialize extra manifest file.");
+                        logger.Debug(ex, "Failed to deserialize extra manifest file.");
                     }
                     return null;
                 });
@@ -411,17 +410,33 @@ namespace Extras
             {
                 Application.Current.Resources.Add("Extras_EmptyStarBrush", new SolidColorBrush(Colors.White) { Opacity = 0.3 });
             }
-            if (!Application.Current.Resources.Contains("Extras_CompletionDropDownArrow"))
-            {
+            string name = args.Name;
+            if (name.EndsWith("1") || name.EndsWith("2"))
                 Application.Current.Resources.Add("Extras_CompletionDropDownArrow", new SolidColorBrush(Colors.White));
             }
-            switch (args.Name)
             {
-                case string s when s.StartsWith(UserRatingElement):
+                name = name.Substring(0, name.Length - 1);
+            }
+            return GenerateCustomElement(name);
+        }
+
+        private Control GenerateCustomElement(string name)
+        {
+            switch (name)
+            {
+                case SettableCompletionStatus:
+                    return new Controls.StylableUserControl(new ViewModels.CompletionStatusViewModel());
+                case SettableFavorite:
+                    return new Controls.StylableUserControl(new ViewModels.FavoriteViewModel());
+                case SettableHidden:
+                    return new Controls.StylableUserControl(new ViewModels.GamePropertyViewModel<bool>(nameof(Game.Hidden), g => g.Hidden, (g, v) => g.Hidden = v));
+                case SettableUserScore:
+                    return new Controls.StylableUserControl(new ViewModels.GamePropertyViewModel<int?>(nameof(Game.UserScore), g => g.UserScore, (g, v) => g.UserScore = v));
+                case UserRatingElement:
                     return new Controls.UserRating();
-                case string s when s.StartsWith(CommunityRatingElement):
+                case CommunityRatingElement:
                     return new Controls.CommunityRating();
-                case string s when s.StartsWith(CriticRatingElement):
+                case CriticRatingElement:
                     return new Controls.CriticRating();
                 case string s when s.StartsWith(CompletionStatusElement):
                     return new Controls.CompletionStatus();

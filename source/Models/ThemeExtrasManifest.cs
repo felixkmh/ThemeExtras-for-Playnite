@@ -1,4 +1,5 @@
 ﻿using Playnite.SDK;
+using Playnite.SDK.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,9 +17,9 @@ namespace Extras.Models
             public string AddonName { get; set; }
             public string AddonId { get; set; }
             public List<string> Features { get; set; }
-            [YamlDotNet.Serialization.YamlIgnore]
+            [DontSerialize]
             public IEnumerable<string> FeaturesLocalized => Features.Select(f => f.StartsWith("LOC") ? ResourceProvider.GetString(f) : f);
-            [YamlDotNet.Serialization.YamlIgnore]
+            [DontSerialize]
             public string AddonInstallUri => string.Format(InstallUri, AddonName);
         }
 
