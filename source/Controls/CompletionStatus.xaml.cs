@@ -1,4 +1,5 @@
-﻿using Playnite.SDK;
+﻿using Extras.ViewModels;
+using Playnite.SDK;
 using Playnite.SDK.Models;
 using System;
 using System.Collections.Generic;
@@ -25,18 +26,19 @@ namespace Extras.Controls
     /// </summary>
     public partial class CompletionStatus : Playnite.SDK.Controls.PluginUserControl
     {
-        private ObservableCollection<Playnite.SDK.Models.CompletionStatus> completionStatuses;
-
-        public CompletionStatus()
+        public CompletionStatus(CompletionStatusViewModel args)
         {
+
             InitializeComponent();
+            CompletionComboBox.DataContext = args;
+
             IsVisibleChanged += CompletionStatus_IsVisibleChanged;
         }
 
         private void CompletionStatus_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
 
-            if (e!= null && !(e.NewValue is Visibility.Visible))
+            if (!(e.NewValue is Visibility.Visible))
             {
                 Playnite.SDK.API.Instance.Database.Games.Update(GameContext);
             }
@@ -44,35 +46,13 @@ namespace Extras.Controls
 
         public override void GameContextChanged(Game oldContext, Game newContext)
         {
-
-            if (completionStatuses == null || !API.Instance.Database.CompletionStatuses.IsListEqual(completionStatuses.DefaultIfEmpty()))
+            if (CompletionComboBox.DataContext is ViewModels.IStylableViewModel vm)
             {
-                completionStatuses = new ObservableCollection<Playnite.SDK.Models.CompletionStatus>(API.Instance.Database.CompletionStatuses);
-
+                vm.Game = newContext;
             }
 
             base.GameContextChanged(oldContext, newContext);
-            CompletionComboBox.ItemsSource = completionStatuses;
-            CompletionComboBox.DataContext = newContext;
         }
 
-        private void CompletionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            Playnite.SDK.Models.CompletionStatus status1 = new Playnite.SDK.Models.CompletionStatus();
-
-            foreach (Playnite.SDK.Models.CompletionStatus comp in Playnite.SDK.API.Instance.Database.CompletionStatuses)
-            {
-                if (comp.Name.Equals(e.AddedItems[0].ToString()))
-                {
-                    status1.Id = comp.Id;
-                    break;
-                }
-            }
-
-            GameContext.CompletionStatusId = status1.Id;
-
-            Playnite.SDK.API.Instance.Database.Games.Update(GameContext);
-
-        }
     }
 }

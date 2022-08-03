@@ -1,15 +1,13 @@
 ﻿<PluginUserControl
+             x:Class="Extras.Controls.CompletionStatus"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:sdk="clr-namespace:Playnite.SDK.Controls;assembly=Playnite.SDK"
-             xmlns:sys="clr-namespace:System;assembly=mscorlib"
-             xmlns:local="clr-namespace:Extras.Controls"
-             xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2" x:Class="Extras.Controls.CompletionStatus"
-             mc:Ignorable="d" 
-             d:DesignHeight="100" d:DesignWidth="300"
-             d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type={x:Type local:CompletionStatus}}">
+             xmlns:local="clr-namespace:Extras.Controls" xmlns:viewmodels="clr-namespace:Extras.ViewModels" xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
+    mc:Ignorable="d"
+    d:DesignHeight="100" d:DesignWidth="300">
     <PluginUserControl.Resources>
         <Style x:Key="FocusVisual">
             <Setter Property="Control.Template">
@@ -292,6 +290,14 @@
             </Style.Triggers>
         </Style>
     </PluginUserControl.Resources>
-    <ComboBox x:Name="CompletionComboBox" d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type={x:Type Game}}"
-              Cursor="Hand" Text="{Binding CompletionStatus.Name}" SelectionChanged="CompletionComboBox_SelectionChanged" BorderBrush="#00ACACAC" Background="#00000000" Style="{DynamicResource CompletionComboBoxStyle}"/>
+    <UserControl x:Name="UserControlCompletion">
+        <ComboBox x:Name="CompletionComboBox" Cursor="Hand" SelectedValue="{Binding Value}" ItemsSource="{Binding CompletionStatusOptions}" 
+                  Background="#00000000" Style="{DynamicResource CompletionComboBoxStyle}" Foreground="{DynamicResource Extras_CompletionTextColor}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Name}"/>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+    </UserControl>
 </PluginUserControl>

@@ -408,6 +408,10 @@ namespace Extras
             {
                 Application.Current.Resources.Add("Extras_EmptyStarBrush", new SolidColorBrush(Colors.White) { Opacity = 0.3 });
             }
+            if (!Application.Current.Resources.Contains("Extras_CompletionTextColor"))
+            {
+                Application.Current.Resources.Add("Extras_CompletionTextColor", new SolidColorBrush(Colors.White) { Opacity = 1 });
+            }
             string name = args.Name;
             if (name.EndsWith("1") || name.EndsWith("2"))
             {
@@ -421,7 +425,7 @@ namespace Extras
             switch (name)
             {
                 case SettableCompletionStatus:
-                    return new Controls.StylableUserControl(new ViewModels.CompletionStatusViewModel());
+                    return new Controls.CompletionStatus(new ViewModels.CompletionStatusViewModel());
                 case SettableFavorite:
                     return new Controls.StylableUserControl(new ViewModels.FavoriteViewModel());
                 case SettableHidden:
