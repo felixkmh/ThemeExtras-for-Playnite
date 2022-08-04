@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,10 +13,10 @@ namespace Extras
         public string Name => ThemeManifest.Name;
         public string Id => ThemeManifest.Id;
         public string RootPath { get; private set; }
+        public string LastChangeFilePath { get; private set; }
         public Models.ThemeManifest ThemeManifest { get; private set; }
         public Models.ThemeExtrasManifest ThemeExtrasManifest { get; private set; }
         public string BackupPath { get; private set; }
-        public DateTime? LastBackup => ThemeExtrasManifest.LastBackup;
 
         public static IEnumerable<ExtendedTheme> CreateExtendedManifests()
         {
@@ -38,6 +39,7 @@ namespace Extras
         {
             extendedTheme = new ExtendedTheme();
             extendedTheme.RootPath = themeRootPath;
+            extendedTheme.LastChangeFilePath = Path.Combine(themeRootPath, "lastChanged.json");
 
             var extraManifestPath = Path.Combine(themeRootPath, Extras.ExtrasManifestFileName);
             if (!File.Exists(extraManifestPath))
@@ -68,45 +70,86 @@ namespace Extras
             return true;
         }
 
+        public IEnumerable<string> GetRelativeFilePaths(string basePath, string relativeDirectoryPath)
+        {
+            var directorySourcePath = Path.Combine(basePath, relativeDirectoryPath);
+
+            foreach (var file in Directory.GetFiles(directorySourcePath, "*", SearchOption.AllDirectories))
+            {
+                var relativePath = file.Replace(basePath + Path.DirectorySeparatorChar, "");
+                yield return relativePath;
+            }
+        }
+
+        public void ClearBackup()
+        {
+            if (Directory.Exists(BackupPath))
+            {
+                Directory.Delete(BackupPath, true);
+            }
+        }
+
         public void Backup()
         {
             if (ThemeExtrasManifest.PersistentPaths is IEnumerable<string> relativePaths)
             {
-                var backedUp = false;
+                var files = new List<string>();
                 foreach(var path in relativePaths)
                 {
                     string sourcePath = Path.Combine(RootPath, path);
                     if (File.Exists(sourcePath))
                     {
-                        if (LastBackup is null || File.GetLastWriteTime(sourcePath) > LastBackup)
-                        {
-                            BackupFile(path);
-                            backedUp = true;
-                        }
+                        files.Add(path);
                     } 
                     else if (Directory.Exists(sourcePath))
                     {
-                        if (BackupDirectory(path) > 0)
-                            backedUp = true;
+                        files.AddRange(GetRelativeFilePaths(RootPath, path));
                     }
                 }
-                if (backedUp)
+                if (!File.Exists(LastChangeFilePath))
                 {
-                    ThemeExtrasManifest.LastBackup = DateTime.Now;
-                    var yaml = Playnite.SDK.Data.Serialization.ToYaml(ThemeExtrasManifest);
-                    try
+                    var timestamps = new Dictionary<string, DateTime>();
+                    foreach (var file in files)
                     {
-                        File.WriteAllText(Path.Combine(RootPath, Extras.ExtrasManifestFileName), yaml);
+                        var fullPath = Path.Combine(RootPath, file);
+                        if (File.Exists(fullPath))
+                        {
+                            var lastWrite = File.GetLastWriteTime(fullPath);
+                            timestamps[file] = lastWrite;
+                        }
                     }
-                    catch (Exception ex)
+                    var json = Playnite.SDK.Data.Serialization.ToJson(timestamps, true);
+                    File.WriteAllText(LastChangeFilePath, json);
+                } else
+                {
+                    var timestamps = Playnite.SDK.Data.Serialization.FromJsonFile<Dictionary<string, DateTime>>(LastChangeFilePath);
+                    var anyBackups = false;
+                    foreach (var file in files)
                     {
-                        Extras.logger.Error(ex, $"Failed to update {Extras.ExtrasManifestFileName} for theme {Name}.");
+                        if (timestamps.TryGetValue(file, out var lastChanged))
+                        {
+                            var fullPath = Path.Combine(RootPath, file);
+                            var newLastChanged = File.GetLastWriteTime(fullPath);
+                            if (newLastChanged != lastChanged)
+                            {
+                                if (BackupFile(file))
+                                {
+                                    timestamps[file] = newLastChanged;
+                                    anyBackups = true;
+                                }
+                            }
+                        }
+                        if (anyBackups)
+                        {
+                            var json = Playnite.SDK.Data.Serialization.ToJson(timestamps, true);
+                            File.WriteAllText(LastChangeFilePath, json);
+                        }
                     }
                 }
             }
         }
 
-        public void BackupFile(string relativeFilePath)
+        public bool BackupFile(string relativeFilePath)
         {
             try
             {
@@ -119,46 +162,14 @@ namespace Extras
 
                 string sourceFilePath = Path.Combine(RootPath, relativeFilePath);
                 File.Copy(sourceFilePath, fileBackupPath, true);
+                Extras.logger.Debug($"Backed {relativeFilePath} from {RootPath} to {BackupPath}.");
+                return true;
             }
             catch (Exception ex)
             {
                 Extras.logger.Error(ex, $"Failed to backup {relativeFilePath} of theme {Name}.");
+                return false;
             }
-        }
-
-        public int BackupDirectory(string realativeDirectoryPath)
-        {
-            var updated = 0;
-            try
-            {
-                var directorySourcePath = Path.Combine(RootPath, realativeDirectoryPath);
-                var directoyBackupPath = Path.Combine(BackupPath, realativeDirectoryPath);
-                if (!Directory.Exists(directoyBackupPath))
-                {
-                    Directory.CreateDirectory(directoyBackupPath);
-                }
-                foreach(var file in Directory.GetFiles(directorySourcePath, "*", SearchOption.AllDirectories))
-                {
-                    var fileInfo = new FileInfo(file);
-                    if (LastBackup is null || fileInfo.LastWriteTime > LastBackup)
-                    {
-                        var fileName = Path.GetFileName(file);
-                        var newPath = file.Replace(RootPath, BackupPath);
-                        var newDir = Path.GetDirectoryName(newPath);
-                        if (!Directory.Exists(newDir))
-                        {
-                            Directory.CreateDirectory(newDir);
-                        }
-                        File.Copy(file, Path.Combine(newDir, fileName), true);
-                        ++updated;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Extras.logger.Error(ex, $"Failed to backup directoy {realativeDirectoryPath} of theme {Name}");
-            }
-            return updated;
         }
 
         public void RestoreFile(string relativeFilePath)
@@ -176,58 +187,45 @@ namespace Extras
                 if (File.Exists(sourceFilePath))
                 {
                     File.Copy(sourceFilePath, fileTargetPath, true);
+                    Extras.logger.Debug($"Restored {relativeFilePath} from {BackupPath} to {RootPath}.");
                 }
             }
             catch (Exception ex)
             {
+                if (System.Diagnostics.Debugger.IsAttached && ex is UnauthorizedAccessException)
+                {
+                    Playnite.SDK.API.Instance.Notifications.Add(new Playnite.SDK.NotificationMessage(
+                        "FileRestoreFailed",
+                        $"Failed to restore {relativeFilePath} of theme {Name} because file access was denied. If this file is an image used as a theme resource, make sure to set \"CacheOption=\"OnLoad\"\".", 
+                        Playnite.SDK.NotificationType.Error
+                    ));
+                }
                 Extras.logger.Error(ex, $"Failed to restore {relativeFilePath} of theme {Name}.");
-            }
-        }
-
-        public void RestoreDirectory(string realativeDirectoryPath)
-        {
-            try
-            {
-                var directorySourcePath = Path.Combine(BackupPath, realativeDirectoryPath);
-                var directoryTarget = Path.Combine(RootPath, realativeDirectoryPath);
-                if (!Directory.Exists(directoryTarget))
-                {
-                    Directory.CreateDirectory(directoryTarget);
-                }
-                foreach (var file in Directory.GetFiles(directorySourcePath, "*", SearchOption.AllDirectories))
-                {
-                    var fileName = Path.GetFileName(file);
-                    var newPath = file.Replace(BackupPath, RootPath);
-                    var newDir = Path.GetDirectoryName(newPath);
-                    if (!Directory.Exists(newDir))
-                    {
-                        Directory.CreateDirectory(newDir);
-                    }
-                    File.Copy(file, Path.Combine(newDir, fileName), true);
-                }
-            }
-            catch (Exception ex)
-            {
-                Extras.logger.Error(ex, $"Failed to restore directoy {realativeDirectoryPath} of theme {Name}");
             }
         }
 
         public void Restore()
         {
-            if (ThemeExtrasManifest.LastBackup is null)
+            if (ThemeExtrasManifest.PersistentPaths is IEnumerable<string> relativePaths)
             {
-                if (ThemeExtrasManifest.PersistentPaths is IEnumerable<string> relativePaths)
+                if (File.Exists(LastChangeFilePath))
                 {
-                    foreach (var path in relativePaths)
+                    // Theme wasn't updated, no need to restore
+                    return;
+                }
+
+                foreach (var path in relativePaths)
+                {
+                    string sourcePath = Path.Combine(BackupPath, path);
+                    if (File.Exists(sourcePath))
                     {
-                        string sourcePath = Path.Combine(BackupPath, path);
-                        if (File.Exists(sourcePath))
+                        RestoreFile(path);
+                    }
+                    else if (Directory.Exists(sourcePath))
+                    {
+                        foreach(var relativePath in GetRelativeFilePaths(BackupPath, path))
                         {
-                            RestoreFile(path);
-                        }
-                        else if (Directory.Exists(sourcePath))
-                        {
-                            RestoreDirectory(path);
+                            RestoreFile(relativePath);
                         }
                     }
                 }

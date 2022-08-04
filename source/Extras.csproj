@@ -79,6 +79,7 @@
     <Compile Include="ViewModels\FavoriteViewModel.cs" />
     <Compile Include="ViewModels\GamePropertyViewModel.cs" />
     <Compile Include="ViewModels\IStylableViewModel.cs" />
+    <Compile Include="ViewModels\ThemeExtrasManifestViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="extension.yaml">

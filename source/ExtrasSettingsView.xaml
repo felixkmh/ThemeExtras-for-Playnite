@@ -6,8 +6,7 @@
              mc:Ignorable="d"
              d:DesignHeight="400" d:DesignWidth="600"
              d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type=extras:ExtrasSettingsViewModel}"
-             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-             >
+             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
     <UserControl.Resources>
     </UserControl.Resources>
     <StackPanel Margin="20" ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalAlignment="Stretch">
@@ -17,5 +16,16 @@
         <CheckBox IsChecked="{Binding Settings.EnableSelectionPreservation}" Margin="5">
             <TextBlock Text="Preserve game selection when switching views"/>
         </CheckBox>
+        <ItemsControl DataContext="{Binding ExtendedThemesViewModel}" ItemsSource="{Binding Themes}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="{x:Type extras:ExtendedTheme}">
+                    <DockPanel>
+                        <Button Content="Clear" Command="{Binding DataContext.ClearCommand, RelativeSource={RelativeSource FindAncestor,AncestorType=ItemsControl}}"
+                                CommandParameter="{Binding}"/>
+                        <TextBlock Text="{Binding Name}" Style="{StaticResource {x:Type TextBlock}}" VerticalAlignment="Center"/>
+                    </DockPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
     </StackPanel>
 </UserControl>
