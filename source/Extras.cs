@@ -29,6 +29,7 @@ namespace Extras
         internal const string CommunityRatingElement = "CommunityRating";
         internal const string CriticRatingElement = "CriticRating";
         internal const string SettableCompletionStatus = "SettableCompletionStatus";
+        internal const string CompletionStatusComboBox = "CompletionStatusComboBox";
         internal const string SettableFavorite = "SettableFavorite";
         internal const string SettableHidden = "SettableHidden";
         internal const string SettableUserScore = "SettableUserScore";
@@ -44,6 +45,8 @@ namespace Extras
         {
             Instance = this;
             settingsViewModel = new ExtrasSettingsViewModel(this);
+            var extendedThemes = ExtendedTheme.CreateExtendedManifests();
+            settingsViewModel.ExtendedThemesViewModel = new ViewModels.ThemeExtrasManifestViewModel(extendedThemes);
 
             Properties = new GenericPluginProperties
             {
@@ -61,14 +64,14 @@ namespace Extras
                     SettableUserScore,
                     UserRatingElement,
                     CommunityRatingElement,
-                    CriticRatingElement
+                    CriticRatingElement,
+                    CompletionStatusComboBox
                 }.SelectMany(e => Enumerable.Range(0, 3).Select(i => e + (i == 0 ? "" : i.ToString()))).ToList()
             });
             AddSettingsSupport(new AddSettingsSupportArgs { SourceName = ExtensionName, SettingsRoot = "settingsViewModel.Settings" });
 
             AddPropertiesAsResources<ICommand>(Settings.Commands);
 
-            var extendedThemes = ExtendedTheme.CreateExtendedManifests().ToList();
             foreach (var theme in extendedThemes)
             {
                 theme.Restore();
@@ -435,6 +438,8 @@ namespace Extras
             switch (name)
             {
                 case SettableCompletionStatus:
+                    return new Controls.StylableUserControl(new ViewModels.CompletionStatusViewModel());
+                case CompletionStatusComboBox:
                     return new Controls.CompletionStatus(new ViewModels.CompletionStatusViewModel());
                 case SettableFavorite:
                     return new Controls.StylableUserControl(new ViewModels.FavoriteViewModel());
@@ -456,7 +461,7 @@ namespace Extras
         public override void OnApplicationStopped(OnApplicationStoppedEventArgs args)
         {
             // Add code to be executed when Playnite is shutting down.
-            var extendedThemes = ExtendedTheme.CreateExtendedManifests().ToList();
+            var extendedThemes = settingsViewModel.ExtendedThemesViewModel.Themes;
             foreach (var theme in extendedThemes)
             {
                 theme.Backup();
