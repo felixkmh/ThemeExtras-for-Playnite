@@ -126,19 +126,23 @@ namespace Extras
                     var anyBackups = false;
                     foreach (var file in files)
                     {
+                        var shouldBackup = true;
+                        var fullPath = Path.Combine(RootPath, file);
+                        var newLastChanged = File.GetLastWriteTime(fullPath);
                         if (timestamps.TryGetValue(file, out var lastChanged))
                         {
-                            var fullPath = Path.Combine(RootPath, file);
-                            var newLastChanged = File.GetLastWriteTime(fullPath);
-                            if (newLastChanged != lastChanged)
+                            shouldBackup = lastChanged != newLastChanged;
+                        }
+
+                        if (shouldBackup)
+                        {
+                            if (BackupFile(file))
                             {
-                                if (BackupFile(file))
-                                {
-                                    timestamps[file] = newLastChanged;
-                                    anyBackups = true;
-                                }
+                                timestamps[file] = newLastChanged;
+                                anyBackups = true;
                             }
                         }
+     
                         if (anyBackups)
                         {
                             var json = Playnite.SDK.Data.Serialization.ToJson(timestamps, true);
