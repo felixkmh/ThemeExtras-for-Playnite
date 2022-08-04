@@ -27,7 +27,5 @@ namespace Extras.Models
         public List<Recommendation> Recommendations { get; set; }
 
         public List<string> PersistentPaths { get; set; }
-
-        public DateTime? LastBackup { get; set; } = null;
     }
 }
