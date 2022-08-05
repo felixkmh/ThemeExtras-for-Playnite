@@ -27,5 +27,10 @@ namespace Extras.Models
         public List<Recommendation> Recommendations { get; set; }
 
         public List<string> PersistentPaths { get; set; }
+
+        public string DefaultBannerPath { get; set; }
+        public string BannerBySpecIdPath { get; set; }
+        public string BannersByPluginIdPath { get; set; }
+        public string BannersByPlatformName { get; set; }
     }
 }

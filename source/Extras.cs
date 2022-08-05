@@ -33,6 +33,8 @@ namespace Extras
         internal const string SettableFavorite = "SettableFavorite";
         internal const string SettableHidden = "SettableHidden";
         internal const string SettableUserScore = "SettableUserScore";
+        internal const string BannerElement = "Banner";
+
         internal const string ExtrasManifestFileName = "themeExtras.yaml";
         internal const string ThemeManifestFileName = "theme.yaml";
 
@@ -40,6 +42,8 @@ namespace Extras
         public ExtrasSettingsViewModel settingsViewModel { get; set; }
 
         public override Guid Id { get; } = Guid.Parse("d2039edd-78f5-47c5-b190-72afef560fbe");
+
+        public readonly BannerCache BannerCache;
 
         public Extras(IPlayniteAPI api) : base(api)
         {
@@ -65,17 +69,20 @@ namespace Extras
                     UserRatingElement,
                     CommunityRatingElement,
                     CriticRatingElement,
-                    CompletionStatusComboBox
+                    CompletionStatusComboBox,
+                    BannerElement
                 }.SelectMany(e => Enumerable.Range(0, 3).Select(i => e + (i == 0 ? "" : i.ToString()))).ToList()
             });
             AddSettingsSupport(new AddSettingsSupportArgs { SourceName = ExtensionName, SettingsRoot = "settingsViewModel.Settings" });
 
             AddPropertiesAsResources<ICommand>(Settings.Commands);
 
+
             foreach (var theme in extendedThemes)
             {
                 theme.Restore();
             }
+            BannerCache = new BannerCache(extendedThemes.Where(t => t.IsCurrentTheme).ToArray());
         }
 
         private void Settings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -358,6 +365,8 @@ namespace Extras
             PlayniteApi.Database.Games.ItemUpdated += Games_ItemUpdated;
             if (PlayniteApi.ApplicationInfo.Mode == ApplicationMode.Desktop)
             {
+                var currentTheme = settingsViewModel.ExtendedThemesViewModel.Themes.FirstOrDefault(t => t.IsCurrentTheme);
+
                 lastView = PlayniteApi.MainView.ActiveDesktopView;
                 await Task.Delay(5000);
 
@@ -453,6 +462,8 @@ namespace Extras
                     return new Controls.CommunityRating();
                 case CriticRatingElement:
                     return new Controls.CriticRating();
+                case BannerElement:
+                    return new Controls.Banner(BannerCache);
                 default:
                     return null;
             }
