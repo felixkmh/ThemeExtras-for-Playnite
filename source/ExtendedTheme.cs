@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Extras
 {
-    public class ExtendedTheme
+    public class ExtendedTheme : ObservableObject
     {
         public string Name => ThemeManifest.Name;
         public string Id => ThemeManifest.Id;
@@ -17,6 +17,8 @@ namespace Extras
         public Models.ThemeManifest ThemeManifest { get; private set; }
         public Models.ThemeExtrasManifest ThemeExtrasManifest { get; private set; }
         public string BackupPath { get; private set; }
+        public int BackedUpFilesCount => Directory.Exists(BackupPath) ? Directory.GetFiles(BackupPath, "*", SearchOption.AllDirectories).Count() : 0;
+        public int PersistentFilesCount => GetPersistentFileCount();
 
         public static IEnumerable<ExtendedTheme> CreateExtendedManifests()
         {
@@ -70,6 +72,31 @@ namespace Extras
             return true;
         }
 
+        public int GetPersistentFileCount()
+        {
+            if (ThemeExtrasManifest.PersistentPaths is IEnumerable<string> persistentPaths)
+            {
+                HashSet<string> files = new HashSet<string>();
+                foreach(var persistentPath in persistentPaths)
+                {
+                    var fullPath = Path.Combine(RootPath, persistentPath);
+                    if (File.Exists(fullPath))
+                    {
+                        files.Add(fullPath);
+                    }
+                    else if (Directory.Exists(fullPath))
+                    {
+                        foreach (var path in Directory.GetFiles(fullPath, "*", SearchOption.AllDirectories))
+                        {
+                            files.Add(path);
+                        }
+                    }
+                }
+                return files.Count;
+            }
+            return 0;
+        }
+
         public IEnumerable<string> GetRelativeFilePaths(string basePath, string relativeDirectoryPath)
         {
             var directorySourcePath = Path.Combine(basePath, relativeDirectoryPath);
@@ -86,6 +113,7 @@ namespace Extras
             if (Directory.Exists(BackupPath))
             {
                 Directory.Delete(BackupPath, true);
+                OnPropertyChanged(nameof(BackedUpFilesCount));
             }
         }
 

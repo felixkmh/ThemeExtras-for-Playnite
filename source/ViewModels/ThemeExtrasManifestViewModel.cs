@@ -15,6 +15,8 @@ namespace Extras.ViewModels
         public ObservableCollection<ExtendedTheme> Themes { get => theme; set => SetValue(ref theme, value); }
 
         public ICommand ClearCommand { get; } = new RelayCommand<ExtendedTheme>(theme => theme?.ClearBackup());
+        public ICommand OpenDirectoryCommand { get; } = new RelayCommand<ExtendedTheme>(theme => System.Diagnostics.Process.Start(theme.BackupPath));
+        public ICommand OpenThemeDirectoryCommand { get; } = new RelayCommand<ExtendedTheme>(theme => System.Diagnostics.Process.Start(theme.RootPath));
 
         public ThemeExtrasManifestViewModel(IEnumerable<ExtendedTheme> extendedThemes)
         {
