@@ -91,7 +91,7 @@ namespace Extras
                 .GroupBy(p => p.SpecificationId)
                 .ToDictionary(g => g.First().SpecificationId, g => g.ToList());
 
-            if (ThemeExtrasManifest.BannerBySpecIdPath is string bannersBySpecIdPath)
+            if (ThemeExtrasManifest.BannersBySpecIdPath is string bannersBySpecIdPath)
             {
                 var fullPath = Path.Combine(RootPath, bannersBySpecIdPath);
                 if (Directory.Exists(fullPath))
