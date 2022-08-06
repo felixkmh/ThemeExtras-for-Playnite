@@ -84,6 +84,12 @@ namespace Extras
                     if (!theme.IsDevTheme)
                     {
                         theme.Restore();
+                    } else
+                    {
+                        if (File.Exists(theme.LastChangeFilePath))
+                        {
+                            File.Delete(theme.LastChangeFilePath);
+                        }
                     }
                 }
             }
@@ -434,6 +440,13 @@ namespace Extras
                     if (!theme.IsDevTheme)
                     {
                         theme.Backup();
+                    }
+                    else
+                    {
+                        if (File.Exists(theme.LastChangeFilePath))
+                        {
+                            File.Delete(theme.LastChangeFilePath);
+                        }
                     }
                 }
             }
