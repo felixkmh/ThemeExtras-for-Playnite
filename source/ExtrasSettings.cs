@@ -44,6 +44,9 @@ namespace Extras
         private bool enableSelectionPreservation = true;
         public bool EnableSelectionPreservation { get => enableSelectionPreservation; set => SetValue(ref enableSelectionPreservation, value); }
 
+        private bool devMode = false;
+        public bool DevMode { get => devMode; set => SetValue(ref devMode, value); }
+
         [DontSerialize]
         public CommandSettings Commands { get; } = CommandSettings.Instance;
 
