@@ -77,11 +77,14 @@ namespace Extras
 
             AddPropertiesAsResources<ICommand>(Settings.Commands);
 
-            if (!Settings.DevMode)
+            if (Settings.BackupAndRestore)
             {
                 foreach (var theme in extendedThemes)
                 {
-                    theme.Restore();
+                    if (!theme.IsDevTheme)
+                    {
+                        theme.Restore();
+                    }
                 }
             }
             BannerCache = new BannerCache(extendedThemes.Where(t => t.IsCurrentTheme).ToArray());
@@ -424,11 +427,14 @@ namespace Extras
         {
             // Add code to be executed when Playnite is shutting down.
             var extendedThemes = settingsViewModel.ExtendedThemesViewModel.Themes;
-            if (!Settings.DevMode)
+            if (Settings.BackupAndRestore)
             {
                 foreach (var theme in extendedThemes)
                 {
-                    theme.Backup();
+                    if (!theme.IsDevTheme)
+                    {
+                        theme.Backup();
+                    }
                 }
             }
         }

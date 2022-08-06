@@ -21,63 +21,51 @@
         </CheckBox>
         <GroupBox Header="Backups" HorizontalAlignment="Left" MinWidth="400"
                   DockPanel.Dock="Top">
-            <ItemsControl DataContext="{Binding ExtendedThemesViewModel}" ItemsSource="{Binding Themes}" Margin="5">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="{x:Type extras:ExtendedTheme}">
-                        <DockPanel>
-                            <TextBlock DockPanel.Dock="Right" Margin="5,0">
-                                <Hyperlink Command="{Binding DataContext.ClearCommand, RelativeSource={RelativeSource FindAncestor,AncestorType=ItemsControl}}"
-                                    CommandParameter="{Binding}">
-                                    <Run Text="Clear"/>
-                                </Hyperlink>
-                            </TextBlock>
-                            <TextBlock DockPanel.Dock="Right" Margin="5,0">
-                                <TextBlock.ToolTip>
-                                    <TextBlock TextWrapping="Wrap" MaxWidth="500" Text="{Binding BackupPath}"/>
-                                </TextBlock.ToolTip>
-                                <Hyperlink Command="{Binding DataContext.OpenDirectoryCommand, RelativeSource={RelativeSource FindAncestor,AncestorType=ItemsControl}}"
-                                    CommandParameter="{Binding}">
-                                    <Run Text="Backup"/>
-                                </Hyperlink>
-                            </TextBlock>
-                            <TextBlock DockPanel.Dock="Right" Margin="5,0">
-                                <TextBlock.ToolTip>
-                                    <TextBlock TextWrapping="Wrap" MaxWidth="500" Text="{Binding RootPath}"/>
-                                </TextBlock.ToolTip>
-                                <Hyperlink Command="{Binding DataContext.OpenThemeDirectoryCommand, RelativeSource={RelativeSource FindAncestor,AncestorType=ItemsControl}}"
-                                    CommandParameter="{Binding}">
-                                    <Run Text="Theme"/>
-                                </Hyperlink>
-                            </TextBlock>
-                            <ContentControl DockPanel.Dock="Left">
-                                <TextBlock Style="{StaticResource BaseTextBlockStyle}" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                    <Run Text="{Binding Name, Mode=OneWay}"/>
-                                    <Run Text=" ("/>
-                                    <Run Text="{Binding BackedUpFilesCount, Mode=OneWay, IsAsync=True}"/>
-                                    <Run Text=" / "/>
-                                    <Run Text="{Binding PersistentFilesCount, Mode=OneWay, IsAsync=True}"/>
-                                    <Run Text=")"/>
+            <StackPanel>
+                <CheckBox Content="Backup and Restore" IsChecked="{Binding Settings.BackupAndRestore}" Margin="5"/>
+                <ItemsControl DataContext="{Binding ExtendedThemesViewModel}" ItemsSource="{Binding Themes}" Margin="5">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type extras:ExtendedTheme}">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Right" Margin="5,0">
+                                    <Hyperlink Command="{Binding DataContext.ClearCommand, RelativeSource={RelativeSource FindAncestor,AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}">
+                                        <Run Text="Clear"/>
+                                    </Hyperlink>
                                 </TextBlock>
-                            </ContentControl>
-                        </DockPanel>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                                <TextBlock DockPanel.Dock="Right" Margin="5,0">
+                                    <TextBlock.ToolTip>
+                                        <TextBlock TextWrapping="Wrap" MaxWidth="500" Text="{Binding BackupPath}"/>
+                                    </TextBlock.ToolTip>
+                                    <Hyperlink Command="{Binding DataContext.OpenDirectoryCommand, RelativeSource={RelativeSource FindAncestor,AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}">
+                                        <Run Text="Backup"/>
+                                    </Hyperlink>
+                                </TextBlock>
+                                <TextBlock DockPanel.Dock="Right" Margin="5,0">
+                                    <TextBlock.ToolTip>
+                                        <TextBlock TextWrapping="Wrap" MaxWidth="500" Text="{Binding RootPath}"/>
+                                    </TextBlock.ToolTip>
+                                    <Hyperlink Command="{Binding DataContext.OpenThemeDirectoryCommand, RelativeSource={RelativeSource FindAncestor,AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}">
+                                        <Run Text="Theme"/>
+                                    </Hyperlink>
+                                </TextBlock>
+                                <ContentControl DockPanel.Dock="Left">
+                                    <TextBlock Style="{StaticResource BaseTextBlockStyle}" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                        <Run Text="{Binding Name, Mode=OneWay}"/>
+                                        <Run Text=" ("/>
+                                        <Run Text="{Binding BackedUpFilesCount, Mode=OneWay, IsAsync=True}"/>
+                                        <Run Text=" / "/>
+                                        <Run Text="{Binding PersistentFilesCount, Mode=OneWay, IsAsync=True}"/>
+                                        <Run Text=")"/>
+                                    </TextBlock>
+                                </ContentControl>
+                            </DockPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
         </GroupBox>
-        <CheckBox Content="Development Mode" IsChecked="{Binding Settings.DevMode}" VerticalAlignment="Bottom"
-                  DockPanel.Dock="Bottom">
-            <CheckBox.Style>
-                <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
-                    <Style.Triggers>
-                        <Trigger Property="IsMouseOver" Value="False">
-                            <Setter Property="Opacity" Value="0"/>
-                        </Trigger>
-                        <Trigger Property="IsChecked" Value="True">
-                            <Setter Property="Opacity" Value="1"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </CheckBox.Style>
-        </CheckBox>
     </DockPanel>
 </UserControl>

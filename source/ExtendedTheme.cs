@@ -29,6 +29,18 @@ namespace Extras
         public Dictionary<Guid, string> PluginBanners => GetPluginBanners();
         public int? DecodeHeight => ThemeExtrasManifest.BannerDecodeHeight;
         public string DefaultBanner => !string.IsNullOrEmpty(ThemeExtrasManifest.DefaultBannerPath) ? Path.Combine(RootPath, ThemeExtrasManifest.DefaultBannerPath) : null;
+        public bool IsDevTheme => CheckDevTheme();
+
+        private bool CheckDevTheme()
+        {
+            var files = Directory.GetFiles(RootPath);
+            if (files.Any(f => f.EndsWith(".sln"))) return true;
+            if (files.Any(f => f.EndsWith(".csproj"))) return true;
+            var directories = Directory.GetDirectories(RootPath);
+            if (directories.Any(d => d.StartsWith("bin"))) return true;
+            if (directories.Any(d => d.StartsWith(".vs"))) return true;
+            return false;
+        }
 
         public static IEnumerable<ExtendedTheme> CreateExtendedManifests()
         {
