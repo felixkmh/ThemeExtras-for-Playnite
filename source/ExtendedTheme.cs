@@ -93,17 +93,12 @@ namespace Extras
         public Dictionary<Platform, string> InitPlatformBanners()
         {
             var platformBanners = new Dictionary<Platform, string>();
-            var platforms = Playnite.SDK.API.Instance.Database.Platforms
+            var platformsBySpecId = Playnite.SDK.API.Instance.Database.Platforms
                 .Concat(new[] { Platform.Empty })
-                .Where(p => !string.IsNullOrEmpty(p.SpecificationId));
-            var platformsBySpecId = new Dictionary<string, Platform>();
-            foreach(var p in platforms)
-            {
-                if (!platformsBySpecId.ContainsKey(p.SpecificationId))
-                {
-                    platformsBySpecId[p.SpecificationId] = p;
-                }
-            }
+                .Where(p => !string.IsNullOrEmpty(p.SpecificationId))
+                .GroupBy(p => p.SpecificationId)
+                .ToDictionary(g => g.First().SpecificationId, g => g.ToList());
+
             if (ThemeExtrasManifest.BannerBySpecIdPath is string bannersBySpecIdPath)
             {
                 var fullPath = Path.Combine(RootPath, bannersBySpecIdPath);
@@ -116,9 +111,12 @@ namespace Extras
                     foreach (var bannerFile in bannerPaths)
                     {
                         var specIdString = Path.GetFileNameWithoutExtension(bannerFile.Name);
-                        if (platformsBySpecId.TryGetValue(specIdString, out var platform))
+                        if (platformsBySpecId.TryGetValue(specIdString, out var platforms))
                         {
-                            platformBanners[platform] = bannerFile.FullName;
+                            foreach(var platform in platforms)
+                            {
+                                platformBanners[platform] = bannerFile.FullName;
+                            }
                         }
                     }
                 }
@@ -130,7 +128,8 @@ namespace Extras
                 var platformsByName = Playnite.SDK.API.Instance.Database.Platforms
                 .Concat(new[] { Platform.Empty })
                 .Where(p => !string.IsNullOrEmpty(p.Name))
-                .ToDictionary(p => p.Name, p => p);
+                .GroupBy(p => p.Name)
+                .ToDictionary(p => p.First().Name, p => p.ToList());
                 if (Directory.Exists(fullPath))
                 {
                     var dirInfo = new DirectoryInfo(fullPath);
@@ -140,10 +139,16 @@ namespace Extras
                     foreach (var bannerFile in bannerPaths)
                     {
                         var platformName = Path.GetFileNameWithoutExtension(bannerFile.Name);
-                        if (platformsByName.TryGetValue(platformName, out var platform) && 
-                           !platformBanners.ContainsKey(platform))
+                        if (platformsByName.TryGetValue(platformName, out var platforms))
                         {
-                            platformBanners[platform] = bannerFile.FullName;
+                            foreach(var platform in platforms)
+                            {
+                                if (!platformBanners.ContainsKey(platform))
+                                {
+                                    platformBanners[platform] = bannerFile.FullName;
+                                }
+
+                            }
                         }
                     }
                 }
