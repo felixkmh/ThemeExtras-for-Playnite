@@ -38,8 +38,8 @@ namespace Extras
             if (files.Any(f => f.EndsWith(".csproj"))) return true;
             if (files.Any(f => f.EndsWith("App.xaml"))) return true;
             var directories = Directory.GetDirectories(RootPath);
-            if (directories.Any(d => d.StartsWith("bin"))) return true;
-            if (directories.Any(d => d.StartsWith(".vs"))) return true;
+            if (directories.Any(d => d.EndsWith("bin"))) return true;
+            if (directories.Any(d => d.EndsWith(".vs"))) return true;
             return false;
         }
 
