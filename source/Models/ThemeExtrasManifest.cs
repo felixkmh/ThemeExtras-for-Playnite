@@ -29,7 +29,7 @@ namespace Extras.Models
         public List<string> PersistentPaths { get; set; }
 
         public string DefaultBannerPath { get; set; }
-        public string BannerBySpecIdPath { get; set; }
+        public string BannersBySpecIdPath { get; set; }
         public string BannersByPluginIdPath { get; set; }
         public string BannersByPlatformName { get; set; }
     }
