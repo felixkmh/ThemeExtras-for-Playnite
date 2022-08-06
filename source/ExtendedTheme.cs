@@ -36,6 +36,7 @@ namespace Extras
             var files = Directory.GetFiles(RootPath);
             if (files.Any(f => f.EndsWith(".sln"))) return true;
             if (files.Any(f => f.EndsWith(".csproj"))) return true;
+            if (files.Any(f => f.EndsWith("App.xaml"))) return true;
             var directories = Directory.GetDirectories(RootPath);
             if (directories.Any(d => d.StartsWith("bin"))) return true;
             if (directories.Any(d => d.StartsWith(".vs"))) return true;
