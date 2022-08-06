@@ -48,7 +48,7 @@ namespace Extras
                 bitmapImage.UriSource = new Uri(path);
                 bitmapImage.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
                 bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                bitmapImage.DecodePixelHeight = 100;
+                bitmapImage.DecodePixelHeight = 50;
                 bitmapImage.EndInit();
                 return bitmapImage;
             }

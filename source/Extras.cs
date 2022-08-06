@@ -358,65 +358,14 @@ namespace Extras
             // Add code to be executed when game is uninstalled.
         }
 
-        public override async void OnApplicationStarted(OnApplicationStartedEventArgs args)
+        public override void OnApplicationStarted(OnApplicationStartedEventArgs args)
         {
             // Add code to be executed when Playnite is initialized.
             settingsViewModel.Settings.PropertyChanged += Settings_PropertyChanged;
             PlayniteApi.Database.Games.ItemUpdated += Games_ItemUpdated;
             if (PlayniteApi.ApplicationInfo.Mode == ApplicationMode.Desktop)
             {
-                var currentTheme = settingsViewModel.ExtendedThemesViewModel.Themes.FirstOrDefault(t => t.IsCurrentTheme);
-
-                lastView = PlayniteApi.MainView.ActiveDesktopView;
-                await Task.Delay(5000);
-
-                var themeId = PlayniteApi.ApplicationSettings.DesktopTheme;
-                var themesDir = Path.Combine(PlayniteApi.Paths.ConfigurationPath, "Themes", "Desktop");
-                var manifestPaths = Directory.GetFiles(themesDir, "theme.yaml", SearchOption.AllDirectories);
-                var manifests = await Task.Run(() =>
-                {
-                    return manifestPaths.ToDictionary(p => p, p =>
-                    {
-                        try
-                        {
-                            return Serialization.FromYamlFile<Models.ThemeManifest>(p);
-                        }
-                        catch (Exception ex)
-                        {
-                            Extras.logger.Debug(ex, $"Failed to deserialize manifest file at ${p}.");
-                        }
-                        return null;
-                    });
-                });
-
-                Models.ThemeExtrasManifest extrasManifest = await Task.Run(() =>
-                {
-                    try
-                    {
-                        if (manifests?.FirstOrDefault(m => m.Value.Id == themeId) is var current && current.HasValue)
-                        {
-                            var themeDir = Path.GetDirectoryName(current.Value.Key);
-                            if (!string.IsNullOrEmpty(themeDir) && Directory.GetFiles(themeDir, ExtrasManifestFileName).FirstOrDefault() is string extraManifestPath)
-                            {
-                                return Serialization.FromYamlFile<Models.ThemeExtrasManifest>(extraManifestPath);
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.Debug(ex, "Failed to deserialize extra manifest file.");
-                    }
-                    return null;
-                });
-
-                if (extrasManifest is object)
-                {
-                    var notInstalled = extrasManifest.Recommendations.Where(r => !PlayniteApi.Addons.Addons.Contains(r.AddonId)).ToHashSet();
-                    if (notInstalled.Any())
-                    {
-                        // PlayniteApi.Dialogs.ShowMessage($"Found {notInstalled.Count} not installed recommendation{(notInstalled.Count > 1 ? "s" : "")} for your current theme:\n{string.Join("\n", notInstalled.Select(r => r.AddonName))}.\n\nDo you want to install them?", "Addon Recommendations", MessageBoxButton.YesNo);
-                    }
-                }
+                
             }
         }
 

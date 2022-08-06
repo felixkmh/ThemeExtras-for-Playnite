@@ -93,10 +93,17 @@ namespace Extras
         public Dictionary<Platform, string> InitPlatformBanners()
         {
             var platformBanners = new Dictionary<Platform, string>();
-            var platformsBySpecId = Playnite.SDK.API.Instance.Database.Platforms
-                .Concat(new[] {Platform.Empty})
-                .Where(p => !string.IsNullOrEmpty(p.SpecificationId))
-                .ToDictionary(p => p.SpecificationId, p => p);
+            var platforms = Playnite.SDK.API.Instance.Database.Platforms
+                .Concat(new[] { Platform.Empty })
+                .Where(p => !string.IsNullOrEmpty(p.SpecificationId));
+            var platformsBySpecId = new Dictionary<string, Platform>();
+            foreach(var p in platforms)
+            {
+                if (!platformsBySpecId.ContainsKey(p.SpecificationId))
+                {
+                    platformsBySpecId[p.SpecificationId] = p;
+                }
+            }
             if (ThemeExtrasManifest.BannerBySpecIdPath is string bannersBySpecIdPath)
             {
                 var fullPath = Path.Combine(RootPath, bannersBySpecIdPath);
