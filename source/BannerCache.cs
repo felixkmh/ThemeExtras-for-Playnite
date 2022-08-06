@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Media.Imaging;
 
 namespace Extras
@@ -20,7 +21,11 @@ namespace Extras
         private readonly IBannerProvider[] bannerProviders;
         private readonly Dictionary<Platform, BitmapImage> platformBanners = new Dictionary<Platform, BitmapImage>();
         private readonly Dictionary<Guid, BitmapImage> pluginBanners = new Dictionary<Guid, BitmapImage>();
+        private readonly MergedDictionary<Platform, string> combinedBannersByPlatform = new MergedDictionary<Platform, string>();
+        private readonly MergedDictionary<Guid, string> combinedBannersByPluginId = new MergedDictionary<Guid, string>();
         private readonly BitmapImage defaultBanner;
+
+        private bool isInitialized = false;
 
         public BannerCache(params IBannerProvider[] bannerProviders)
         {
@@ -35,6 +40,23 @@ namespace Extras
                         defaultBanner = bitmapImage;
                         break;
                     }
+                }
+            }
+        }
+
+        public void Initialize()
+        {
+            foreach (var provider in bannerProviders)
+            {
+                var byPlatform = provider.PlatformBanners;
+                foreach (var item in byPlatform)
+                {
+                    combinedBannersByPlatform[item.Key] = item.Value;
+                }
+                var byPluginId = provider.PluginBanners;
+                foreach (var item in byPluginId)
+                {
+                    combinedBannersByPluginId[item.Key] = item.Value;
                 }
             }
         }
@@ -59,37 +81,38 @@ namespace Extras
 
         public BitmapImage GetBanner(Game game)
         {
+            if (!isInitialized)
+            {
+                Initialize();
+            }
             if (game.Platforms?.FirstOrDefault() is Platform platform)
             {
                 if (platformBanners.TryGetValue(platform, out BitmapImage platformImage))
                 {
                     return platformImage;
                 }
-                foreach(var provider in bannerProviders)
+
+                while (combinedBannersByPlatform.TryGetValue(platform, out var path))
                 {
-                    var banners = provider.PlatformBanners;
-                    if (banners.TryGetValue(platform, out var path))
+                    if (CreateImage(path) is BitmapImage bitmapImage)
                     {
-                        if (CreateImage(path) is BitmapImage bitmapImage)
-                        {
-                            platformBanners[platform] = bitmapImage;
-                            return bitmapImage;
-                        } else
-                        {
-                            banners.Remove(platform);
-                        }
+                        platformBanners[platform] = bitmapImage;
+                        return bitmapImage;
+                    } else
+                    {
+                        combinedBannersByPlatform.Remove(platform);
                     }
                 }
+
             }
-            var pluginId = game.PluginId;
-            if (pluginBanners.TryGetValue(pluginId, out var pluginImage))
             {
-                return pluginImage;
-            } 
-            foreach(var provider in bannerProviders)
-            {
-                var banners = provider.PluginBanners;
-                if (banners.TryGetValue(pluginId, out var path))
+                var pluginId = game.PluginId;
+                if (pluginBanners.TryGetValue(pluginId, out var pluginImage))
+                {
+                    return pluginImage;
+                }
+
+                while (combinedBannersByPluginId.TryGetValue(pluginId, out var path))
                 {
                     if (CreateImage(path) is BitmapImage bitmapImage)
                     {
@@ -98,10 +121,11 @@ namespace Extras
                     }
                     else
                     {
-                        banners.Remove(pluginId);
+                        combinedBannersByPluginId.Remove(pluginId);
                     }
                 }
             }
+
             return defaultBanner;
         }
     }

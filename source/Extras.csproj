@@ -76,6 +76,7 @@
     <Compile Include="ExtrasSettingsView.xaml.cs">
       <DependentUpon>ExtrasSettingsView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="MergedDictionary.cs" />
     <Compile Include="Models\ThemeExtrasManifest.cs" />
     <Compile Include="Models\ThemeManifest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

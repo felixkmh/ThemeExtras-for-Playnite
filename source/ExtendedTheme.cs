@@ -23,10 +23,8 @@ namespace Extras
         public int BackedUpFilesCount => Directory.Exists(BackupPath) ? Directory.GetFiles(BackupPath, "*", SearchOption.AllDirectories).Count() : 0;
         public int PersistentFilesCount => GetPersistentFileCount();
         public bool IsCurrentTheme { get; private set; } = false;
-        private Lazy<Dictionary<Platform, string>> platformBanners;
-        public Dictionary<Platform, string> PlatformBanners => platformBanners.Value;
-        private Lazy<Dictionary<Guid, string>> pluginBanners;
-        public Dictionary<Guid, string> PluginBanners => pluginBanners.Value;
+        public Dictionary<Platform, string> PlatformBanners => GetPlatformBanners();
+        public Dictionary<Guid, string> PluginBanners => GetPluginBanners();
         public string DefaultBanner => !string.IsNullOrEmpty(ThemeExtrasManifest.DefaultBannerPath) ? Path.Combine(RootPath, ThemeExtrasManifest.DefaultBannerPath) : null;
 
         public static IEnumerable<ExtendedTheme> CreateExtendedManifests()
@@ -44,12 +42,6 @@ namespace Extras
                     }
                 }
             }
-        }
-
-        private ExtendedTheme()
-        {
-            platformBanners = new Lazy<Dictionary<Platform, string>>(InitPlatformBanners);
-            pluginBanners = new Lazy<Dictionary<Guid, string>>(InitPluginBanners);
         }
 
         public static bool TryCreate(string themeRootPath, out ExtendedTheme extendedTheme)
@@ -90,7 +82,7 @@ namespace Extras
             return true;
         }
 
-        public Dictionary<Platform, string> InitPlatformBanners()
+        public Dictionary<Platform, string> GetPlatformBanners()
         {
             var platformBanners = new Dictionary<Platform, string>();
             var platformsBySpecId = Playnite.SDK.API.Instance.Database.Platforms
@@ -157,7 +149,7 @@ namespace Extras
             return platformBanners;
         }
 
-        public Dictionary<Guid, string> InitPluginBanners()
+        public Dictionary<Guid, string> GetPluginBanners()
         {
             var pluginBanners = new Dictionary<Guid, string>();
             var plugins = Playnite.SDK.API.Instance.Addons.Plugins
