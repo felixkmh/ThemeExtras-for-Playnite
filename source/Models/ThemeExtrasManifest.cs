@@ -32,5 +32,7 @@ namespace Extras.Models
         public string BannersBySpecIdPath { get; set; }
         public string BannersByPluginIdPath { get; set; }
         public string BannersByPlatformName { get; set; }
+
+        public int? BannerDecodeHeight { get; set; }
     }
 }

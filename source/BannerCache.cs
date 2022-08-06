@@ -70,7 +70,7 @@ namespace Extras
                 bitmapImage.UriSource = new Uri(path);
                 bitmapImage.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
                 bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                bitmapImage.DecodePixelHeight = 50;
+                bitmapImage.DecodePixelHeight = Math.Min(1000, Math.Max(0, ExtendedTheme.Current?.DecodeHeight ?? 50));
                 bitmapImage.EndInit();
                 return bitmapImage;
             }

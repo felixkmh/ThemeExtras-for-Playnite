@@ -13,6 +13,8 @@ namespace Extras
 {
     public class ExtendedTheme : ObservableObject, IBannerProvider
     {
+        public static ExtendedTheme Current { get; private set; }
+
         public string Name => ThemeManifest.Name;
         public string Id => ThemeManifest.Id;
         public string RootPath { get; private set; }
@@ -25,6 +27,7 @@ namespace Extras
         public bool IsCurrentTheme { get; private set; } = false;
         public Dictionary<Platform, string> PlatformBanners => GetPlatformBanners();
         public Dictionary<Guid, string> PluginBanners => GetPluginBanners();
+        public int? DecodeHeight => ThemeExtrasManifest.BannerDecodeHeight;
         public string DefaultBanner => !string.IsNullOrEmpty(ThemeExtrasManifest.DefaultBannerPath) ? Path.Combine(RootPath, ThemeExtrasManifest.DefaultBannerPath) : null;
 
         public static IEnumerable<ExtendedTheme> CreateExtendedManifests()
@@ -78,6 +81,10 @@ namespace Extras
 
             var currentThemeId = Playnite.SDK.API.Instance.ApplicationSettings.DesktopTheme;
             extendedTheme.IsCurrentTheme = extendedTheme.Id == currentThemeId;
+            if (extendedTheme.IsCurrentTheme)
+            {
+                Current = extendedTheme;
+            }
 
             return true;
         }
