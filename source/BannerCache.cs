@@ -85,19 +85,37 @@ namespace Extras
             {
                 Initialize();
             }
+
+            BitmapImage pcImage = null;
+
+            bool isPc = false;
             if (game.Platforms?.FirstOrDefault() is Platform platform)
             {
+                isPc = platform.SpecificationId == "pc_windows";
                 if (platformBanners.TryGetValue(platform, out BitmapImage platformImage))
                 {
-                    return platformImage;
+                    if (isPc)
+                    {
+                        pcImage = pcImage ?? platformImage;
+                    } else
+                    {
+                        return platformImage;
+                    }
                 }
 
                 while (combinedBannersByPlatform.TryGetValue(platform, out var path))
                 {
                     if (CreateImage(path) is BitmapImage bitmapImage)
                     {
-                        platformBanners[platform] = bitmapImage;
-                        return bitmapImage;
+                        if (isPc)
+                        {
+                            pcImage = pcImage ?? bitmapImage;
+                            break;
+                        } else
+                        {
+                            platformBanners[platform] = bitmapImage;
+                            return bitmapImage;
+                        }
                     } else
                     {
                         combinedBannersByPlatform.Remove(platform);
@@ -110,6 +128,11 @@ namespace Extras
                 if (pluginBanners.TryGetValue(pluginId, out var pluginImage))
                 {
                     return pluginImage;
+                }
+
+                if (pluginId == Platform.Empty.Id && pcImage != null)
+                {
+                    return pcImage;
                 }
 
                 while (combinedBannersByPluginId.TryGetValue(pluginId, out var path))
@@ -126,7 +149,7 @@ namespace Extras
                 }
             }
 
-            return defaultBanner;
+            return pcImage ?? defaultBanner;
         }
     }
 }

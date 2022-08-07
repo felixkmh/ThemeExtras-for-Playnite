@@ -13,6 +13,8 @@ namespace Extras
 {
     public class ExtendedTheme : ObservableObject, IBannerProvider
     {
+        private const string DeletedFileExtension = ".deleted";
+
         public static ExtendedTheme Current { get; private set; }
 
         public string Name => ThemeManifest.Name;
@@ -292,18 +294,38 @@ namespace Extras
 
                         if (shouldBackup)
                         {
+                            var deleteFilePath = Path.Combine(BackupPath, file + DeletedFileExtension);
+                            if (File.Exists(deleteFilePath))
+                            {
+                                File.Delete(deleteFilePath);
+                            }
                             if (BackupFile(file))
                             {
                                 timestamps[file] = newLastChanged;
                                 anyBackups = true;
                             }
                         }
-     
-                        if (anyBackups)
+                    }
+                    foreach(var file in timestamps.Keys)
+                    {
+                        var sourcePath = Path.Combine(RootPath, file);
+                        var targetPath = Path.Combine(BackupPath, file);
+                        var deleteFilePath = Path.Combine(BackupPath, file + DeletedFileExtension);
+                        if (!File.Exists(sourcePath) && !File.Exists(deleteFilePath))
                         {
-                            var json = Playnite.SDK.Data.Serialization.ToJson(timestamps, true);
-                            File.WriteAllText(LastChangeFilePath, json);
+                            if (File.Exists(targetPath))
+                            {
+                                File.Delete(targetPath);
+                            }
+                            File.Create(deleteFilePath);
+                            timestamps[file] = File.GetLastWriteTime(deleteFilePath);
+                            anyBackups = true;
                         }
+                    }
+                    if (anyBackups)
+                    {
+                        var json = Playnite.SDK.Data.Serialization.ToJson(timestamps, true);
+                        File.WriteAllText(LastChangeFilePath, json);
                     }
                 }
             }
@@ -385,7 +407,19 @@ namespace Extras
                     {
                         foreach(var relativePath in GetRelativeFilePaths(BackupPath, path))
                         {
-                            RestoreFile(relativePath);
+                            if (relativePath.EndsWith(DeletedFileExtension)) continue;
+                            var deleteFilePath = Path.Combine(BackupPath, relativePath + DeletedFileExtension);
+                            if (File.Exists(deleteFilePath))
+                            {
+                                var sourceFilePath = Path.Combine(RootPath, relativePath);
+                                if (File.Exists(sourceFilePath))
+                                {
+                                    File.Delete(sourceFilePath);
+                                }
+                            } else
+                            {
+                                RestoreFile(relativePath);
+                            }
                         }
                     }
                 }
