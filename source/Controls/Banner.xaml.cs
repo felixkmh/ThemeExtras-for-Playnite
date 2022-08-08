@@ -39,7 +39,10 @@ namespace Extras.Controls
                 (newContext?.PluginId != oldContext?.PluginId || newContext.PlatformIds?.FirstOrDefault() != oldContext?.PlatformIds?.FirstOrDefault()))
             {
                 var bitmapImage = bannerCache.GetBanner(newContext);
-                BannerImage.Source = bitmapImage;
+                if (bitmapImage != BannerImage.Source)
+                {
+                    BannerImage.Source = bitmapImage;
+                }
                 newContext.PropertyChanged += Game_PropertyChanged;
             } else if (newContext is null)
             {
