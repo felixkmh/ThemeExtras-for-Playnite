@@ -77,7 +77,15 @@ namespace Extras.Models
                             var match = dirInfo.EnumerateFiles().Where(f => f.Name.StartsWith(domain)).FirstOrDefault();
                             if (match is FileInfo)
                             {
-                                icon = new BitmapImage(new Uri(match.FullName));
+                                try
+                                {
+                                    icon = new BitmapImage(new Uri(match.FullName));
+                                }
+                                catch (Exception ex)
+                                {
+                                    icon = null;
+                                    Extras.logger.Error(ex, $"Failed to load link icon \"{match.FullName}\" for domain \"{domain}\".");
+                                }
                             }
                         }
                     }
