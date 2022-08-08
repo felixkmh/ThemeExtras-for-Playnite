@@ -79,7 +79,13 @@ namespace Extras.Models
                             {
                                 try
                                 {
-                                    icon = new BitmapImage(new Uri(match.FullName));
+                                    var bitmap = new BitmapImage();
+                                    bitmap.BeginInit();
+                                    bitmap.UriSource = new Uri(match.FullName);
+                                    bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+                                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                                    bitmap.EndInit();
+                                    icon = bitmap;
                                 }
                                 catch (Exception ex)
                                 {
