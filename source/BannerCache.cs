@@ -19,6 +19,7 @@ namespace Extras
     public class BannerCache
     {
         private readonly IBannerProvider[] bannerProviders;
+        private readonly Dictionary<Tuple<Guid, Guid>, BitmapImage> cache = new Dictionary<Tuple<Guid, Guid>, BitmapImage>();
         private readonly Dictionary<Platform, BitmapImage> platformBanners = new Dictionary<Platform, BitmapImage>();
         private readonly Dictionary<Guid, BitmapImage> pluginBanners = new Dictionary<Guid, BitmapImage>();
         private readonly MergedDictionary<Platform, string> combinedBannersByPlatform = new MergedDictionary<Platform, string>();
@@ -59,6 +60,7 @@ namespace Extras
                     combinedBannersByPluginId[item.Key] = item.Value;
                 }
             }
+            isInitialized = true;
         }
 
         public BitmapImage CreateImage(string path)
@@ -86,6 +88,13 @@ namespace Extras
                 Initialize();
             }
 
+            var key = new Tuple<Guid, Guid>(game.PlatformIds?.FirstOrDefault() ?? Platform.Empty.Id, game.PluginId);
+
+            if (cache.TryGetValue(key, out var image))
+            {
+                return image;
+            }
+
             BitmapImage pcImage = null;
 
             bool isPc = false;
@@ -99,6 +108,7 @@ namespace Extras
                         pcImage = pcImage ?? platformImage;
                     } else
                     {
+                        cache[key] = platformImage;
                         return platformImage;
                     }
                 }
@@ -114,6 +124,7 @@ namespace Extras
                         } else
                         {
                             platformBanners[platform] = bitmapImage;
+                            cache[key] = bitmapImage;
                             return bitmapImage;
                         }
                     } else
@@ -140,6 +151,7 @@ namespace Extras
                     if (CreateImage(path) is BitmapImage bitmapImage)
                     {
                         pluginBanners[pluginId] = bitmapImage;
+                        cache[key] = bitmapImage;
                         return bitmapImage;
                     }
                     else
@@ -148,6 +160,8 @@ namespace Extras
                     }
                 }
             }
+
+            cache[key] = pcImage ?? defaultBanner;
 
             return pcImage ?? defaultBanner;
         }
