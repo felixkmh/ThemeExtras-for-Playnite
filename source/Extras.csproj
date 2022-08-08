@@ -53,6 +53,9 @@
     <Compile Include="Controls\Banner.xaml.cs">
       <DependentUpon>Banner.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\Links.xaml.cs">
+      <DependentUpon>Links.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\StylableUserControl.xaml.cs">
       <DependentUpon>StylableUserControl.xaml</DependentUpon>
     </Compile>
@@ -77,6 +80,7 @@
       <DependentUpon>ExtrasSettingsView.xaml</DependentUpon>
     </Compile>
     <Compile Include="MergedDictionary.cs" />
+    <Compile Include="Models\LinkExt.cs" />
     <Compile Include="Models\ThemeExtrasManifest.cs" />
     <Compile Include="Models\ThemeManifest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -94,6 +98,10 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="Controls\Banner.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\Links.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

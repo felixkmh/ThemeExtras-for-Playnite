@@ -34,6 +34,7 @@ namespace Extras
         internal const string SettableHidden = "SettableHidden";
         internal const string SettableUserScore = "SettableUserScore";
         internal const string BannerElement = "Banner";
+        internal const string LinksElement = "Links";
 
         internal const string ExtrasManifestFileName = "themeExtras.yaml";
         internal const string ThemeManifestFileName = "theme.yaml";
@@ -70,7 +71,8 @@ namespace Extras
                     CommunityRatingElement,
                     CriticRatingElement,
                     CompletionStatusComboBox,
-                    BannerElement
+                    BannerElement,
+                    LinksElement,
                 }.SelectMany(e => Enumerable.Range(0, 3).Select(i => e + (i == 0 ? "" : i.ToString()))).ToList()
             });
             AddSettingsSupport(new AddSettingsSupportArgs { SourceName = ExtensionName, SettingsRoot = "settingsViewModel.Settings" });
@@ -424,6 +426,8 @@ namespace Extras
                     return new Controls.CriticRating();
                 case BannerElement:
                     return new Controls.Banner(BannerCache);
+                case LinksElement:
+                    return new Controls.Links();
                 default:
                     return null;
             }
