@@ -35,16 +35,19 @@ namespace Extras.Controls
             {
                 oldContext.PropertyChanged -= Game_PropertyChanged;
             }
-            if (newContext is Game && 
-                (newContext?.PluginId != oldContext?.PluginId || newContext.PlatformIds?.FirstOrDefault() != oldContext?.PlatformIds?.FirstOrDefault()))
+            if (newContext is Game)
             {
-                var bitmapImage = bannerCache.GetBanner(newContext);
-                if (bitmapImage != BannerImage.Source)
+                if (newContext?.PluginId != oldContext?.PluginId || newContext.PlatformIds?.FirstOrDefault() != oldContext?.PlatformIds?.FirstOrDefault())
                 {
-                    BannerImage.Source = bitmapImage;
+                    var bitmapImage = bannerCache.GetBanner(newContext);
+                    if (bitmapImage != BannerImage.Source)
+                    {
+                        BannerImage.Source = bitmapImage;
+                    }
                 }
                 newContext.PropertyChanged += Game_PropertyChanged;
-            } else if (newContext is null)
+            }
+            else
             {
                 BannerImage.Source = null;
             }
