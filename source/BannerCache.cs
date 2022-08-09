@@ -136,16 +136,17 @@ namespace Extras
             }
             {
                 var pluginId = game.PluginId;
-                if (pluginBanners.TryGetValue(pluginId, out var pluginImage))
-                {
-                    cache[key] = pluginImage;
-                    return pluginImage;
-                }
 
                 if (pluginId == Platform.Empty.Id && pcImage != null)
                 {
                     cache[key] = pcImage;
                     return pcImage;
+                }
+
+                if (pluginBanners.TryGetValue(pluginId, out var pluginImage))
+                {
+                    cache[key] = pluginImage;
+                    return pluginImage;
                 }
 
                 while (combinedBannersByPluginId.TryGetValue(pluginId, out var path))
