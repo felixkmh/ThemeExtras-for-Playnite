@@ -1,4 +1,5 @@
 ﻿using Playnite.SDK;
+using Playnite.SDK.Data;
 using Playnite.SDK.Models;
 using System;
 using System.Collections.Generic;
@@ -26,6 +27,9 @@ namespace Extras.Models
 
         public ICommand OpenLinkCommand => new RelayCommand(() => { System.Diagnostics.Process.Start(Url); });
 
+        public static List<Models.FontIconInfo> iconInfos = Serialization.FromJsonFile<List<Models.FontIconInfo>>(Path.Combine(Path.GetDirectoryName(typeof(Extras).Assembly.Location), "Assets/Fonts/brands.json"));
+        public static FontFamily iconFont = new FontFamily($"file:///{Path.Combine(Path.GetDirectoryName(typeof(Extras).Assembly.Location), "Assets/Fonts/brands.ttf")}#brands");
+
         private object GetIcon()
         {
             var uri = new Uri(Url);
@@ -42,8 +46,8 @@ namespace Extras.Models
                     {
                         case BitmapImage bitmapImage:
                             return new Image() { Source = bitmapImage };
-                        case string iconString:
-                            return new TextBlock() { Text = iconString, FontFamily = ResourceProvider.GetResource("FontIcoFont") as FontFamily };
+                        case Tuple<char, FontFamily> iconString:
+                            return new TextBlock() { Text = iconString.Item1.ToString(), FontFamily = iconString.Item2 };
                         default:
                             return null;
                     }
@@ -55,10 +59,10 @@ namespace Extras.Models
                     switch (ResourceProvider.GetResource(key))
                     {
                         case char iconChar:
-                            icon = iconChar.ToString();
+                            icon = new Tuple<char, FontFamily>(iconChar, ResourceProvider.GetResource("FontIcoFont") as FontFamily) ;
                             break;
                         case string iconString:
-                            icon = iconString;
+                            icon = new Tuple<char, FontFamily>(iconString[0], ResourceProvider.GetResource("FontIcoFont") as FontFamily);
                             break;
                         default:
                             break;
@@ -105,14 +109,11 @@ namespace Extras.Models
                     {
                         case BitmapImage bitmapImage:
                             return new Image() { Source = bitmapImage };
-                        case string iconString:
-                            return new TextBlock() { Text = iconString, FontFamily = ResourceProvider.GetResource("FontIcoFont") as FontFamily };
+                        case Tuple<char, FontFamily> iconString:
+                            return new TextBlock() { Text = iconString.Item1.ToString(), FontFamily = iconString.Item2 };
                         default:
-                            break;
+                            return null;
                     }
-                } else
-                {
-                    iconCache[domain] = null;
                 }
 
                 var index = domain.IndexOf('.');
@@ -122,6 +123,14 @@ namespace Extras.Models
                 }
                 domain = domain.Substring(index + 1);
 
+            }
+
+            var host = uri.Host.ToLower();
+
+            if (iconInfos.Where(i => host.Contains(i.Name)).OrderByDescending(i => i.Name.Length).FirstOrDefault() is FontIconInfo info)
+            {
+                iconCache[uri.Host] = new Tuple<char, FontFamily>(info.Char, iconFont);
+                return new TextBlock() { Text = info.Char.ToString(), FontFamily = iconFont };
             }
 
             iconCache[uri.Host] = null;

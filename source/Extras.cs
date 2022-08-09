@@ -5,6 +5,7 @@ using Playnite.SDK.Models;
 using Playnite.SDK.Plugins;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -35,6 +36,7 @@ namespace Extras
         internal const string SettableUserScore = "SettableUserScore";
         internal const string BannerElement = "Banner";
         internal const string LinksElement = "Links";
+        internal const string MediaControlsElement = "MediaElementControls";
 
         internal const string ExtrasManifestFileName = "themeExtras.yaml";
         internal const string ThemeManifestFileName = "theme.yaml";
@@ -73,6 +75,7 @@ namespace Extras
                     CompletionStatusComboBox,
                     BannerElement,
                     LinksElement,
+                    //MediaControlsElement,
                 }.SelectMany(e => Enumerable.Range(0, 3).Select(i => e + (i == 0 ? "" : i.ToString()))).ToList()
             });
             AddSettingsSupport(new AddSettingsSupportArgs { SourceName = ExtensionName, SettingsRoot = "settingsViewModel.Settings" });
@@ -428,6 +431,8 @@ namespace Extras
                     return new Controls.Banner(BannerCache);
                 case LinksElement:
                     return new Controls.Links();
+                case MediaControlsElement:
+                    return new Controls.MediaElementControls();
                 default:
                     return null;
             }

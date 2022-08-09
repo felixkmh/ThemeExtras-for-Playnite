@@ -39,6 +39,7 @@
     <Reference Include="PresentationFramework.Aero2" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -56,6 +57,9 @@
     <Compile Include="Controls\Links.xaml.cs">
       <DependentUpon>Links.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\MediaElementControls.xaml.cs">
+      <DependentUpon>MediaElementControls.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\StylableUserControl.xaml.cs">
       <DependentUpon>StylableUserControl.xaml</DependentUpon>
     </Compile>
@@ -72,6 +76,7 @@
       <DependentUpon>UserRating.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\IntToRatingBrushConverter.cs" />
+    <Compile Include="Converters\PowConverter.cs" />
     <Compile Include="CustomElementCache.cs" />
     <Compile Include="ExtendedTheme.cs" />
     <Compile Include="Extras.cs" />
@@ -80,10 +85,12 @@
       <DependentUpon>ExtrasSettingsView.xaml</DependentUpon>
     </Compile>
     <Compile Include="MergedDictionary.cs" />
+    <Compile Include="Models\FontIconInfo.cs" />
     <Compile Include="Models\LinkExt.cs" />
     <Compile Include="Models\ThemeExtrasManifest.cs" />
     <Compile Include="Models\ThemeManifest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UiHelper.cs" />
     <Compile Include="ViewModels\CompletionStatusViewModel.cs" />
     <Compile Include="ViewModels\FavoriteViewModel.cs" />
     <Compile Include="ViewModels\GamePropertyViewModel.cs" />
@@ -91,6 +98,12 @@
     <Compile Include="ViewModels\ThemeExtrasManifestViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\Fonts\brands.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Fonts\brands.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="extension.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -102,6 +115,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\Links.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\MediaElementControls.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
