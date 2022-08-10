@@ -13,17 +13,20 @@ namespace Extras
     {
         Dictionary<Platform, string> PlatformBanners { get; }
         Dictionary<Guid, string> PluginBanners { get; }
+        Dictionary<GameSource, string> SourceBanners { get; }
         string DefaultBanner { get; }
     }
 
     public class BannerCache
     {
         private readonly IBannerProvider[] bannerProviders;
-        private readonly Dictionary<Tuple<Guid, Guid>, BitmapImage> cache = new Dictionary<Tuple<Guid, Guid>, BitmapImage>();
+        private readonly Dictionary<Tuple<Guid, Guid, Guid>, BitmapImage> cache = new Dictionary<Tuple<Guid, Guid, Guid>, BitmapImage>();
         private readonly Dictionary<Platform, BitmapImage> platformBanners = new Dictionary<Platform, BitmapImage>();
         private readonly Dictionary<Guid, BitmapImage> pluginBanners = new Dictionary<Guid, BitmapImage>();
+        private readonly Dictionary<GameSource, BitmapImage> sourceBanners = new Dictionary<GameSource, BitmapImage>();
         private readonly MergedDictionary<Platform, string> combinedBannersByPlatform = new MergedDictionary<Platform, string>();
         private readonly MergedDictionary<Guid, string> combinedBannersByPluginId = new MergedDictionary<Guid, string>();
+        private readonly MergedDictionary<GameSource, string> combinedBannersBySource = new MergedDictionary<GameSource, string>();
         private readonly BitmapImage defaultBanner;
 
         private bool isInitialized = false;
@@ -50,15 +53,23 @@ namespace Extras
             foreach (var provider in bannerProviders)
             {
                 var byPlatform = provider.PlatformBanners;
-                foreach (var item in byPlatform)
-                {
-                    combinedBannersByPlatform[item.Key] = item.Value;
-                }
+                if (byPlatform != null)
+                    foreach (var item in byPlatform)
+                    {
+                        combinedBannersByPlatform[item.Key] = item.Value;
+                    }
                 var byPluginId = provider.PluginBanners;
-                foreach (var item in byPluginId)
-                {
-                    combinedBannersByPluginId[item.Key] = item.Value;
-                }
+                if(byPluginId != null)
+                    foreach (var item in byPluginId)
+                    {
+                        combinedBannersByPluginId[item.Key] = item.Value;
+                    }
+                var bySource = provider.SourceBanners;
+                if (bySource != null)
+                    foreach (var item in bySource)
+                    {
+                        combinedBannersBySource[item.Key] = item.Value;
+                    }
             }
             isInitialized = true;
         }
@@ -88,28 +99,35 @@ namespace Extras
                 Initialize();
             }
 
-            var key = new Tuple<Guid, Guid>(game.PlatformIds?.FirstOrDefault() ?? Platform.Empty.Id, game.PluginId);
-
-            if (cache.TryGetValue(key, out var image))
+            Tuple<Guid, Guid, Guid> key = null;
+            if ((game.PlatformIds?.Count ?? 0) <= 1)
             {
-                return image;
+                key = new Tuple<Guid, Guid, Guid>(game.PlatformIds?.FirstOrDefault() ?? Platform.Empty.Id, game.PluginId, game.Source?.Id ?? GameSource.Empty.Id);
+                if (cache.TryGetValue(key, out var image))
+                {
+                    return image;
+                }
             }
 
             BitmapImage pcImage = null;
+            BitmapImage platformImage = null;
 
             bool isPc = false;
             if (game.Platforms?.FirstOrDefault() is Platform platform)
             {
                 isPc = platform.SpecificationId == "pc_windows";
-                if (platformBanners.TryGetValue(platform, out BitmapImage platformImage))
+                if (platformBanners.TryGetValue(platform, out platformImage))
                 {
                     if (isPc)
                     {
                         pcImage = pcImage ?? platformImage;
                     } else
                     {
-                        cache[key] = platformImage;
-                        return platformImage;
+                        if (key != null)
+                        {
+                            cache[key] = platformImage;
+                            return platformImage;
+                        }
                     }
                 }
 
@@ -123,9 +141,14 @@ namespace Extras
                             break;
                         } else
                         {
+                            platformImage = bitmapImage;
                             platformBanners[platform] = bitmapImage;
-                            cache[key] = bitmapImage;
-                            return bitmapImage;
+                            if (key != null)
+                            {
+                                cache[key] = bitmapImage;
+                                return bitmapImage;
+                            }
+                            break;
                         }
                     } else
                     {
@@ -135,17 +158,67 @@ namespace Extras
 
             }
             {
+                var source = game.Source ?? GameSource.Empty;
+
+                if (source == GameSource.Empty && pcImage != null)
+                {
+                    if (key != null)
+                    {
+                        cache[key] = pcImage;
+                    }
+                    return pcImage;
+                }
+
+                if (sourceBanners.TryGetValue(source, out var sourceImage))
+                {
+                    if (key != null)
+                    {
+                        cache[key] = sourceImage;
+                    }
+                    return sourceImage;
+                }
+
+                while (combinedBannersBySource.TryGetValue(source, out var path))
+                {
+                    if (CreateImage(path) is BitmapImage bitmapImage)
+                    {
+                        sourceBanners[source] = bitmapImage;
+                        if (key != null)
+                        {
+                            cache[key] = bitmapImage;
+                        }
+                        return bitmapImage;
+                    }
+                    else
+                    {
+                        combinedBannersBySource.Remove(source);
+                    }
+                }
+            }
+
+            if (platformImage is BitmapImage)
+            {
+                return platformImage;
+            }
+
+            {
                 var pluginId = game.PluginId;
 
                 if (pluginId == Platform.Empty.Id && pcImage != null)
                 {
-                    cache[key] = pcImage;
+                    if (key != null)
+                    {
+                        cache[key] = pcImage;
+                    }
                     return pcImage;
                 }
 
                 if (pluginBanners.TryGetValue(pluginId, out var pluginImage))
                 {
-                    cache[key] = pluginImage;
+                    if (key != null)
+                    {
+                        cache[key] = pluginImage;
+                    }
                     return pluginImage;
                 }
 
@@ -154,7 +227,10 @@ namespace Extras
                     if (CreateImage(path) is BitmapImage bitmapImage)
                     {
                         pluginBanners[pluginId] = bitmapImage;
-                        cache[key] = bitmapImage;
+                        if (key != null)
+                        {
+                            cache[key] = bitmapImage;
+                        }
                         return bitmapImage;
                     }
                     else
@@ -164,7 +240,10 @@ namespace Extras
                 }
             }
 
-            cache[key] = pcImage ?? defaultBanner;
+            if (key != null)
+            {
+                cache[key] = pcImage ?? defaultBanner;
+            }
 
             return pcImage ?? defaultBanner;
         }

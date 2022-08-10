@@ -29,6 +29,7 @@ namespace Extras
         public bool IsCurrentTheme { get; private set; } = false;
         public Dictionary<Platform, string> PlatformBanners => GetPlatformBanners();
         public Dictionary<Guid, string> PluginBanners => GetPluginBanners();
+        public Dictionary<GameSource, string> SourceBanners => GetSourceBanners();
         public int? DecodeHeight => ThemeExtrasManifest.BannerDecodeHeight;
         public string DefaultBanner => !string.IsNullOrEmpty(ThemeExtrasManifest.DefaultBannerPath) ? Path.Combine(RootPath, ThemeExtrasManifest.DefaultBannerPath) : null;
         public bool IsDevTheme => CheckDevTheme();
@@ -149,7 +150,8 @@ namespace Extras
                     var dirInfo = new DirectoryInfo(fullPath);
                     var bannerPaths = dirInfo.EnumerateFiles("*", SearchOption.AllDirectories)
                                              .Where(f => f.Extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
-                                                         f.Extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase));
+                                                         f.Extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                                                         f.Extension.Equals(".ico", StringComparison.OrdinalIgnoreCase));
                     foreach (var bannerFile in bannerPaths)
                     {
                         var platformName = Path.GetFileNameWithoutExtension(bannerFile.Name);
@@ -187,7 +189,8 @@ namespace Extras
                     var dirInfo = new DirectoryInfo(fullPath);
                     var bannerPaths = dirInfo.EnumerateFiles("*", SearchOption.AllDirectories)
                                              .Where(f => f.Extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
-                                                         f.Extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase));
+                                                         f.Extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                                                         f.Extension.Equals(".ico", StringComparison.OrdinalIgnoreCase));
                     foreach (var bannerFile in bannerPaths)
                     {
                         var pluginIdString = Path.GetFileNameWithoutExtension(bannerFile.Name);
@@ -200,6 +203,43 @@ namespace Extras
             }
 
             return pluginBanners;
+        }
+
+        public Dictionary<GameSource, string> GetSourceBanners()
+        {
+            var sourceBanners = new Dictionary<GameSource, string>();
+            var sources = Playnite.SDK.API.Instance.Database.Sources
+                .Where(p => !string.IsNullOrEmpty(p.Name))
+                .GroupBy(p => p.Name)
+                .ToDictionary(p => p.First().Name, p => p.ToList());
+            if (ThemeExtrasManifest.BannersBySourceName is string bannersBySourceName)
+            {
+                var fullPath = Path.Combine(RootPath, bannersBySourceName);
+                if (Directory.Exists(fullPath))
+                {
+                    var dirInfo = new DirectoryInfo(fullPath);
+                    var bannerPaths = dirInfo.EnumerateFiles("*", SearchOption.AllDirectories)
+                                             .Where(f => f.Extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
+                                                         f.Extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                                                         f.Extension.Equals(".ico", StringComparison.OrdinalIgnoreCase));
+                    foreach (var bannerFile in bannerPaths)
+                    {
+                        var sourceNameString = Path.GetFileNameWithoutExtension(bannerFile.Name);
+                        if (sources.TryGetValue(sourceNameString, out var groupedSources))
+                        {
+                            foreach (var source in groupedSources)
+                            {
+                                if (!sourceBanners.ContainsKey(source))
+                                {
+                                    sourceBanners[source] = bannerFile.FullName;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return sourceBanners;
         }
 
         public int GetPersistentFileCount()
