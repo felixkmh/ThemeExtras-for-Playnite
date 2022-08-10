@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 
@@ -52,6 +53,9 @@ namespace Extras
 
         [DontSerialize]
         public GameProperties Game { get; } = GameProperties.Instance;
+
+        [DontSerialize]
+        public Menus Menus { get; } = Menus.Instance;
 
         [DontSerialize]
         public ObservableCollection<Game> RunningGames { get; } = new ObservableCollection<Game>();
@@ -134,11 +138,127 @@ namespace Extras
         }
     }
 
+    public class Menus : ObservableObject
+    {
+        public static Menus Instance = new Menus();
+
+        private bool isOpen;
+        public bool IsOpen 
+        { 
+            get => isOpen;
+            set
+            {
+                SetValue(ref isOpen, value);
+                if (value)
+                {
+                    OnPropertyChanged(nameof(EMLGameMenuItems));
+                    OnPropertyChanged(nameof(BackgroundChangerGameMenuItems));
+                }
+            }
+        }
+
+        public IEnumerable<object> EMLGameMenuItems
+        {
+            get
+            {
+                var api = API.Instance;
+                var id = "705fdbca-e1fc-4004-b839-1d040b8b4429";
+                if (IsOpen && (api.MainView.SelectedGames?.Any() ?? false))
+                    if (api.Addons?.Plugins?.FirstOrDefault(p => string.Equals(p.Id.ToString(), id, System.StringComparison.InvariantCultureIgnoreCase)) is Plugin plugin)
+                    {
+                        try
+                        {
+                            var items = CreateGameMenuItems(api, plugin);
+                            var settingsItem = new MenuItem { Header = ResourceProvider.GetString("LOCSettingsLabel"), Command = Extras.Instance.Settings.Commands.OpenPluginSettingsCommand, CommandParameter = id };
+                            if (items.Count > 0)
+                            {
+                                items.Insert(0, new Separator());
+                            }
+                            items.Insert(0, settingsItem);
+                            return items;
+                        }
+                        catch (System.Exception ex)
+                        {
+                            Extras.logger.Debug(ex, $"Failed to create ExtraMetadata menu items.");
+                        }
+                    }
+                return null;
+            }
+        }
+
+        public IEnumerable<object> BackgroundChangerGameMenuItems
+        {
+            get
+            {
+                var api = API.Instance;
+                var id = "3afdd02b-db6c-4b60-8faa-2971d6dfad2a";
+                if (IsOpen && (api.MainView.SelectedGames?.Any() ?? false))
+                    if (api.Addons?.Plugins?.FirstOrDefault(p => string.Equals(p.Id.ToString(), id, System.StringComparison.InvariantCultureIgnoreCase)) is Plugin plugin)
+                    {
+                        try
+                        {
+                            var items = CreateGameMenuItems(api, plugin);
+                            var settingsItem = new MenuItem { Header = ResourceProvider.GetString("LOCSettingsLabel"), Command = Extras.Instance.Settings.Commands.OpenPluginSettingsCommand, CommandParameter = id };
+                            if (items.Count > 0)
+                            {
+                                items.Insert(0, new Separator());
+                            }
+                            items.Insert(0, settingsItem);
+                            return items;
+                        }
+                        catch (System.Exception ex)
+                        {
+                            Extras.logger.Debug(ex, $"Failed to create BackgroundChanger menu items.");
+                        }
+                    }
+                return null;
+            }
+        }
+
+        private static IList<object> CreateGameMenuItems(IPlayniteAPI api, Plugin plugin)
+        {
+            var menuItems = new ObservableCollection<object>();
+            List<Game> games = api.MainView.SelectedGames?.Take(1).ToList() ?? new List<Game>();
+            foreach (var item in plugin.GetGameMenuItems(new GetGameMenuItemsArgs() { Games = games }))
+            {
+                var path = item.MenuSection.Replace("@", "").Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries).Skip(1).ToList();
+                var currentMenuItems = menuItems;
+                for (int i = 0; i < path.Count; ++i)
+                {
+                    var section = path[i];
+                    if (currentMenuItems.OfType<MenuItem>().FirstOrDefault(mi => mi.Header as string == section) is MenuItem menuItem)
+                    {
+                        currentMenuItems = menuItem.ItemsSource as ObservableCollection<object>;
+                    }
+                    else
+                    {
+                        var itemList = new ObservableCollection<object>();
+                        currentMenuItems.Add(new MenuItem { Header = section, ItemsSource = itemList });
+                        currentMenuItems = itemList;
+                    }
+                }
+                if (item.Description is "-")
+                {
+                    currentMenuItems.Add(new Separator());
+                } else
+                {
+                    currentMenuItems.Add(new MenuItem
+                    {
+                        Header = item.Description,
+                        Command = new RelayCommand<GameMenuItemActionArgs>(item.Action),
+                        CommandParameter = new GameMenuItemActionArgs { Games = games, SourceItem = item }
+                    });
+                }
+            }
+            return menuItems;
+        }
+    }
+
     public class CommandSettings
     {
         public static readonly CommandSettings Instance = new CommandSettings();
 
-        private CommandSettings() {}
+        private CommandSettings() { }
 
         public static void UpdateGames(object sender, EventArgs args)
         {

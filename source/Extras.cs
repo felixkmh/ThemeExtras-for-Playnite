@@ -224,6 +224,11 @@ namespace Extras
 
         public override void OnGameSelected(OnGameSelectedEventArgs args)
         {
+            //if (args.NewValue.Count <= 1)
+            //{
+            //    Settings.Menus.OnPropertyChanged(nameof(Menus.EMLGameMenuItems));
+            //    Settings.Menus.OnPropertyChanged(nameof(Menus.BackgroundChangerGameMenuItems));
+            //}
             Settings.Game.PropertyChanged -= Settings_PropertyChanged;
             var prevSelected = lastSelected;
             var prevMode = lastView;
