@@ -18,7 +18,7 @@
         </CheckBox>
         <CheckBox IsChecked="{Binding Settings.EnableSelectionPreservation}" Margin="5"
                   DockPanel.Dock="Top">
-            <TextBlock Text="Preserve game selection when switching views"/>
+            <TextBlock Text="Preserve game selection when switching views (Playnite 10)"/>
         </CheckBox>
         <GroupBox Header="Backups" HorizontalAlignment="Left" MinWidth="400"
                   DockPanel.Dock="Top">
