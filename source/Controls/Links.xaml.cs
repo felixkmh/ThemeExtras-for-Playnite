@@ -56,19 +56,26 @@ namespace Extras.Controls
 
         private async Task UpdateLinks(Game game)
         {
-            links.Clear();
-            using (var httpClient = new HttpClient() { Timeout = TimeSpan.FromSeconds(1) })
+            try
             {
-                if (game.Links is ObservableCollection<Link>)
+                links.Clear();
+                using (var httpClient = new HttpClient() { Timeout = TimeSpan.FromSeconds(1) })
                 {
-                    foreach (var l in game.Links)
+                    if (game.Links is ObservableCollection<Link>)
                     {
-                        LinkExt link = new LinkExt(l);
-                        link.Icon = await LinkExt.GetIconAsync(httpClient, link.Url);
-                        links.Add(link);
+                        foreach (var l in game.Links)
+                        {
+                            LinkExt link = new LinkExt(l);
+                            link.Icon = await LinkExt.GetIconAsync(httpClient, link.Url);
+                            links.Add(link);
+                        }
                     }
-                }
-            };
+                };
+            }
+            catch (Exception ex)
+            {
+                Extras.logger.Debug(ex, $"Failed to update link icons for game {game?.Name}");
+            }
         }
 
         private async void Links_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
