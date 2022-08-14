@@ -108,7 +108,7 @@ namespace Extras.Models
                 return null;
             }
 
-            var domain = uri.Host;
+            var domain = uri.Host ?? "";
 
             object icon = null;
 
