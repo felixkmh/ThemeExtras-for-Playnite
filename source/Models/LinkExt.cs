@@ -57,6 +57,7 @@ namespace Extras.Models
             { "steamcommunity.com", '\uf1b6' },
             { "steampowered.com", '\uf1b6' },
             { "discord.gg", '\uf392' },
+            { "discord.com", '\uf392' },
             { "twitch.tv", '\uf1e8' },
             { "facebook.com", '\uf09a' },
             { "twitter.com", '\uf099' },
