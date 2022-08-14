@@ -89,6 +89,8 @@ namespace Extras
 
         public ViewModels.ThemeExtrasManifestViewModel ExtendedThemesViewModel { get; set; }
 
+        public ICommand OpenUserLinkIconDir => new RelayCommand(() => System.Diagnostics.Process.Start(Extras.Instance.UserLinkIconDir));
+
         public ExtrasSettingsViewModel(Extras plugin)
         {
             // Injecting your plugin instance is required for Save/Load method because Playnite saves data to a location based on what plugin requested the operation.

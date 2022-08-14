@@ -98,10 +98,22 @@
     <Compile Include="ViewModels\ThemeExtrasManifestViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Assets\Fonts\brands.json">
+    <Content Include="Assets\Fonts\brands.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Assets\Fonts\brands.ttf">
+    <Content Include="Assets\Fonts\Font Awesome 6 Brands-Regular-400.otf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Icons\bethesda.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Icons\gog.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Icons\humble.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Icons\origin.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="extension.yaml">

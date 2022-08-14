@@ -10,6 +10,7 @@
     <UserControl.Resources>
     </UserControl.Resources>
     <DockPanel Margin="20" ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalAlignment="Stretch">
+        <Button DockPanel.Dock="Top" Margin="5" Content="Open User Link Icon Directory" Command="{Binding OpenUserLinkIconDir}" HorizontalAlignment="Left"/>
         <CheckBox IsChecked="{Binding Settings.EnableGameMenuRating}" Margin="5" HorizontalAlignment="Stretch"
                   DockPanel.Dock="Top">
             <TextBlock Text="Enable game menu entry to rate games" TextWrapping="Wrap"

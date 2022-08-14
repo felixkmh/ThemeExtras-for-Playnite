@@ -3,9 +3,12 @@ using Playnite.SDK.Data;
 using Playnite.SDK.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -27,8 +30,65 @@ namespace Extras.Models
 
         public ICommand OpenLinkCommand => new RelayCommand(() => { System.Diagnostics.Process.Start(Url); });
 
-        public static List<Models.FontIconInfo> iconInfos = Serialization.FromJsonFile<List<Models.FontIconInfo>>(Path.Combine(Path.GetDirectoryName(typeof(Extras).Assembly.Location), "Assets/Fonts/brands.json"));
-        public static FontFamily iconFont = new FontFamily($"file:///{Path.Combine(Path.GetDirectoryName(typeof(Extras).Assembly.Location), "Assets/Fonts/brands.ttf")}#brands");
+        private static readonly string assemblyDir = Path.GetDirectoryName(typeof(Extras).Assembly.Location);
+        public static FontFamily IconFont = new FontFamily($"file:///{Path.Combine(assemblyDir, "Assets/Fonts/brands.ttf")}#brands");
+        public static FontFamily FontAwesomeFont = new FontFamily($"file:///{Path.Combine(assemblyDir, "Assets/Fonts/Font Awesome 6 Brands-Regular-400.otf")}#Font Awesome 6 Brands");
+
+        public static string UserIconDir => Extras.Instance.UserLinkIconDir;
+
+        public static readonly ReadOnlyDictionary<string, Uri> FileIconDict = new ReadOnlyDictionary<string,Uri>(new Dictionary<string, Uri>
+        {
+            { "bethesda.net", new Uri(Path.Combine(assemblyDir, "Assets/Icons/bethesda.ico")) },
+            { "gog.com", new Uri(Path.Combine(assemblyDir, "Assets/Icons/gog.ico")) },
+            { "humblebundle.com", new Uri(Path.Combine(assemblyDir, "Assets/Icons/humble.ico")) },
+            { "origin.com", new Uri(Path.Combine(assemblyDir, "Assets/Icons/origin.ico")) },
+        });
+
+        public static readonly ReadOnlyDictionary<string, char> IconFontDict = new ReadOnlyDictionary<string, char>(new Dictionary<string, char>
+        {
+            { "epicgames.com", (char)59882 },
+            { "ubisoftconnect.com", (char)60484 },
+            { "ubisoft.com", (char)60484 },
+            { "uplay.com", (char)60484 },
+        });
+
+        public static readonly ReadOnlyDictionary<string, char> FontAwesomeDict = new ReadOnlyDictionary<string, char>(new Dictionary<string, char>
+        {
+            { "steamcommunity.com", '\uf1b6' },
+            { "steampowered.com", '\uf1b6' },
+            { "discord.gg", '\uf392' },
+            { "twitch.tv", '\uf1e8' },
+            { "facebook.com", '\uf09a' },
+            { "twitter.com", '\uf099' },
+            { "amazon.com", '\uf270' },
+            { "apple.com", '\uf179' },
+            { "battle.net", '\uf835' },
+            { "github.com", '\uf09b' },
+            { "xbox.com", '\uf412' },
+            { "microsoft.com", '\uf17a' },
+            { "itch.io", '\uf83a' },
+            { "wikipedia.org", '\uf266' },
+            { "playstation.com", '\uf3df' },
+            { "play.google.com", '\uf3ab' },
+            { "google.com", '\uf1a0' },
+            { "spotify.com", '\uf1bc' },
+            { "kickstarter.com", '\uf3bc' },
+            { "mixer.com", '\ue056' },
+            { "napster.com", '\uf3d2' },
+            { "patreon.com", '\uf3d9' },
+            { "paypal.com", '\uf1ed' },
+            { "pinterest.com", '\uf0d2' },
+            { "reddit.com", '\uf1a1' },
+            { "soundcloud.com", '\uf1be' },
+            { "teamspeak.com", '\uf4f9' },
+            { "telegram.org", '\uf2c6' },
+            { "tiktok.com", '\ue07b' },
+            { "tumblr.com", '\uf173' },
+            { "unity.com", '\ue049' },
+            { "youtube.com", '\uf167' },
+            { "wordpress.com", '\uf411' },
+            { "instagram.com", '\uF16D' },
+        });
 
         private object GetIcon()
         {
@@ -55,6 +115,39 @@ namespace Extras.Models
 
                 if (icon is null)
                 {
+                    var dirInfo = new DirectoryInfo(UserIconDir);
+                    if (dirInfo.Exists)
+                    {
+                        var files = dirInfo.EnumerateFiles("*", SearchOption.AllDirectories)
+                            .Where(f => f.Extension.Equals(".ico", StringComparison.OrdinalIgnoreCase) ||
+                                        f.Extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
+                                        f.Extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase));
+                        var userIconPath = files
+                            .FirstOrDefault(f => Path.GetFileNameWithoutExtension(f.Name).Equals(domain, StringComparison.OrdinalIgnoreCase));
+
+                        if (userIconPath != null)
+                        {
+                            try
+                            {
+                                var bitmap = new BitmapImage();
+                                bitmap.BeginInit();
+                                bitmap.UriSource = new Uri(userIconPath.FullName);
+                                bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+                                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                                bitmap.EndInit();
+                                icon = bitmap;
+                            }
+                            catch (Exception ex)
+                            {
+                                icon = null;
+                                Extras.logger.Error(ex, $"Failed to load link icon \"{userIconPath}\" for domain \"{domain}\".");
+                            }
+                        }
+                    }
+                }
+
+                if (icon is null)
+                {
                     var key = WebsiteIconResourcePrefix + domain;
                     switch (ResourceProvider.GetResource(key))
                     {
@@ -63,6 +156,9 @@ namespace Extras.Models
                             break;
                         case string iconString:
                             icon = new Tuple<char, FontFamily>(iconString[0], ResourceProvider.GetResource("FontIcoFont") as FontFamily);
+                            break;
+                        case BitmapImage bitmapImage:
+                            icon = bitmapImage;
                             break;
                         default:
                             break;
@@ -101,6 +197,46 @@ namespace Extras.Models
                     }
                 }
 
+                var hostToLower = domain.ToLower();
+                if (icon is null)
+                {
+
+                    if (FontAwesomeDict.TryGetValue(hostToLower, out var fontAwesomeChar))
+                    {
+                        icon = new Tuple<char, FontFamily>(fontAwesomeChar, FontAwesomeFont);
+                    }
+                }
+
+                if (icon is null)
+                {
+                    if (IconFontDict.TryGetValue(hostToLower, out var iconFontChar))
+                    {
+                        icon = new Tuple<char, FontFamily>(iconFontChar, IconFont);
+                    }
+                }
+
+                if (icon is null)
+                {
+                    if (FileIconDict.TryGetValue(hostToLower, out var iconUri))
+                    {
+                        try
+                        {
+                            var bitmap = new BitmapImage();
+                            bitmap.BeginInit();
+                            bitmap.UriSource = iconUri;
+                            bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                            bitmap.EndInit();
+                            icon = bitmap;
+                        }
+                        catch (Exception ex)
+                        {
+                            icon = null;
+                            Extras.logger.Error(ex, $"Failed to load link icon \"{iconUri}\" for domain \"{domain}\".");
+                        }
+                    }
+                }
+
                 if (icon is object)
                 {
                     iconCache[uri.Host] = icon;
@@ -125,12 +261,34 @@ namespace Extras.Models
 
             }
 
-            var host = uri.Host.ToLower();
-
-            if (iconInfos.Where(i => host.Contains(i.Name)).OrderByDescending(i => i.Name.Length).FirstOrDefault() is FontIconInfo info)
+            if (icon is null)
             {
-                iconCache[uri.Host] = new Tuple<char, FontFamily>(info.Char, iconFont);
-                return new TextBlock() { Text = info.Char.ToString(), FontFamily = iconFont };
+                string faviconUrl = $@"http://www.google.com/s2/favicons?domain={uri.Host}&sz=32";
+                try
+                {
+                    Uri faviconUri = new Uri(faviconUrl);
+                    using (var client = new HttpClient())
+                    {
+                        var response = client.GetAsync(faviconUrl).Result;
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var bitmap = new BitmapImage();
+                            bitmap.BeginInit();
+                            bitmap.StreamSource = response.Content.ReadAsStreamAsync().Result;
+                            bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                            bitmap.EndInit();
+                            icon = bitmap;
+                            iconCache[uri.Host] = icon;
+                            return new Image() { Source = bitmap };
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    icon = null;
+                    Extras.logger.Error(ex, $"Failed to load link icon \"{faviconUrl}\" for domain \"{domain}\".");
+                }
             }
 
             iconCache[uri.Host] = null;

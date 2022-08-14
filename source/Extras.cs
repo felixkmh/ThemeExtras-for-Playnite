@@ -41,6 +41,8 @@ namespace Extras
         internal const string ExtrasManifestFileName = "themeExtras.yaml";
         internal const string ThemeManifestFileName = "theme.yaml";
 
+        public string UserLinkIconDir => Path.Combine(GetPluginUserDataPath(), "LinkIcons");
+
         public ExtrasSettings Settings => settingsViewModel?.Settings;
         public ExtrasSettingsViewModel settingsViewModel { get; set; }
 
@@ -381,6 +383,10 @@ namespace Extras
 
         public override void OnApplicationStarted(OnApplicationStartedEventArgs args)
         {
+            if (!Directory.Exists(UserLinkIconDir))
+            {
+                Directory.CreateDirectory(UserLinkIconDir);
+            }
             // Add code to be executed when Playnite is initialized.
             settingsViewModel.Settings.PropertyChanged += Settings_PropertyChanged;
             PlayniteApi.Database.Games.ItemUpdated += Games_ItemUpdated;
