@@ -26,7 +26,8 @@ namespace Extras.Models
 
         private const string WebsiteIconResourcePrefix = "ThemeExtrasWebIcon_";
 
-        public object Icon { get; set; }
+        private object icon = null;
+        public object Icon { get => icon; set => SetValue(ref icon, value); }
 
         public ICommand OpenLinkCommand => new RelayCommand(() => 
         {
