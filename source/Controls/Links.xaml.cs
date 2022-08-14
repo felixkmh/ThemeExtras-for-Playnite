@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -32,7 +33,7 @@ namespace Extras.Controls
             LinksItemsControl.ItemsSource = links;
         }
 
-        public override void GameContextChanged(Game oldContext, Game newContext)
+        public override async void GameContextChanged(Game oldContext, Game newContext)
         {
             if (oldContext is Game)
             {
@@ -42,7 +43,6 @@ namespace Extras.Controls
                     oldContext.Links.CollectionChanged -= Links_CollectionChanged;
                 }
             }
-            links.Clear();
             if (newContext is Game game)
             {
                 game.PropertyChanged += Game_PropertyChanged;
@@ -50,27 +50,42 @@ namespace Extras.Controls
                 {
                     game.Links.CollectionChanged += Links_CollectionChanged;
                 }
-                game.Links?.ForEach(l =>
-                {
-                    links.Add(new LinkExt(l));
-                });
+                await UpdateLinks(game);
             }
         }
 
-        private void Links_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        private async Task UpdateLinks(Game game)
         {
-            throw new NotImplementedException();
+            links.Clear();
+            using (var httpClient = new HttpClient() { Timeout = TimeSpan.FromSeconds(1) })
+            {
+                if (game.Links is ObservableCollection<Link>)
+                {
+                    foreach (var l in game.Links)
+                    {
+                        LinkExt link = new LinkExt(l);
+                        link.Icon = await LinkExt.GetIconAsync(httpClient, link.Url);
+                        links.Add(link);
+                    }
+                }
+            };
         }
 
-        private void Game_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private async void Links_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            await UpdateLinks(GameContext);
+        }
+
+        private async void Game_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName is nameof(Game.Links))
             {
-                links.Clear();
-                GameContext.Links?.ForEach(l =>
+                if (GameContext.Links is ObservableCollection<Link>)
                 {
-                    links.Add(new LinkExt(l));
-                });
+                    GameContext.Links.CollectionChanged -= Links_CollectionChanged;
+                    GameContext.Links.CollectionChanged += Links_CollectionChanged;
+                }
+                await UpdateLinks(GameContext);
             }
         }
     }

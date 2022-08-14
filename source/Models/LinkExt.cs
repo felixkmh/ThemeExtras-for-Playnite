@@ -26,9 +26,19 @@ namespace Extras.Models
 
         private const string WebsiteIconResourcePrefix = "ThemeExtrasWebIcon_";
 
-        public object Icon => GetIcon();
+        public object Icon { get; set; }
 
-        public ICommand OpenLinkCommand => new RelayCommand(() => { System.Diagnostics.Process.Start(Url); });
+        public ICommand OpenLinkCommand => new RelayCommand(() => 
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(Url); 
+            }
+            catch (Exception ex)
+            {
+                Extras.logger.Debug(ex, $"Failed to open url {Url}.");
+            }
+        });
 
         private static readonly string assemblyDir = Path.GetDirectoryName(typeof(Extras).Assembly.Location);
         public static FontFamily IconFont = new FontFamily($"file:///{Path.Combine(assemblyDir, "Assets/Fonts/brands.ttf")}#brands");
@@ -91,9 +101,12 @@ namespace Extras.Models
             { "instagram.com", '\uF16D' },
         });
 
-        private object GetIcon()
+        public static async Task<object> GetIconAsync(HttpClient httpClient, string Url)
         {
-            var uri = new Uri(Url);
+            if (!Uri.TryCreate(Url, UriKind.Absolute, out var uri))
+            {
+                return null;
+            }
 
             var domain = uri.Host;
 
@@ -268,21 +281,19 @@ namespace Extras.Models
                 try
                 {
                     Uri faviconUri = new Uri(faviconUrl);
-                    using (var client = new HttpClient())
+
+                    var response = await httpClient.GetAsync(faviconUrl);
+                    if (response.IsSuccessStatusCode)
                     {
-                        var response = client.GetAsync(faviconUrl).Result;
-                        if (response.IsSuccessStatusCode)
-                        {
-                            var bitmap = new BitmapImage();
-                            bitmap.BeginInit();
-                            bitmap.StreamSource = response.Content.ReadAsStreamAsync().Result;
-                            bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
-                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                            bitmap.EndInit();
-                            icon = bitmap;
-                            iconCache[uri.Host] = icon;
-                            return new Image() { Source = bitmap };
-                        }
+                        var bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.StreamSource = await response.Content.ReadAsStreamAsync();
+                        bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.EndInit();
+                        icon = bitmap;
+                        iconCache[uri.Host] = icon;
+                        return new Image() { Source = bitmap };
                     }
                 }
                 catch (Exception ex)
