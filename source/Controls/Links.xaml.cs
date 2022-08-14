@@ -66,8 +66,11 @@ namespace Extras.Controls
                         foreach (var l in game.Links)
                         {
                             LinkExt link = new LinkExt(l);
-                            link.Icon = await LinkExt.GetIconAsync(httpClient, link.Url);
                             links.Add(link);
+                        }
+                        foreach(var l in links)
+                        {
+                            l.Icon = await LinkExt.GetIconAsync(httpClient, l.Url);
                         }
                     }
                 };
