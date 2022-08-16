@@ -12,7 +12,7 @@ namespace Extras
         private static object _lock = 0;
         private static HttpClient client;
         private static DateTime lastClientCreated = DateTime.Now;
-        private static TimeSpan timeout = TimeSpan.FromMinutes(1);
+        private static TimeSpan timeout = TimeSpan.FromSeconds(100);
 
         public static HttpClient GetClient()
         {
