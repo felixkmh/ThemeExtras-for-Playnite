@@ -1,5 +1,11 @@
 AddonId: felixkmh_Extras_Plugin
 Packages:
+  - Version: 0.1.2
+    RequiredApiVersion: 6.2.2
+    ReleaseDate: 2022-08-16
+    PackageUrl: https://github.com/felixkmh/ThemeExtras-for-Playnite/releases/download/v0.1.2/felixkmh_Extras_Plugin_0_1_2.pext
+    Changelog:
+      - Fixed error when switching games
   - Version: 0.1.1
     RequiredApiVersion: 6.2.2
     ReleaseDate: 2022-08-14
