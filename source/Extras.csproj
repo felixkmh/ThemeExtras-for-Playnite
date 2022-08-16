@@ -84,6 +84,7 @@
     <Compile Include="ExtrasSettingsView.xaml.cs">
       <DependentUpon>ExtrasSettingsView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="HttpClientFactory.cs" />
     <Compile Include="MergedDictionary.cs" />
     <Compile Include="Models\FontIconInfo.cs" />
     <Compile Include="Models\LinkExt.cs" />

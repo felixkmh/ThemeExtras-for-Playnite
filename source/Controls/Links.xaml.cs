@@ -59,21 +59,20 @@ namespace Extras.Controls
             try
             {
                 links.Clear();
-                using (var httpClient = new HttpClient() { Timeout = TimeSpan.FromSeconds(1) })
+                var httpClient = HttpClientFactory.GetClient();
+
+                if (game.Links is ObservableCollection<Link>)
                 {
-                    if (game.Links is ObservableCollection<Link>)
+                    foreach (var l in game.Links)
                     {
-                        foreach (var l in game.Links)
-                        {
-                            LinkExt link = new LinkExt(l);
-                            links.Add(link);
-                        }
-                        foreach(var l in links)
-                        {
-                            l.Icon = await LinkExt.GetIconAsync(httpClient, l.Url);
-                        }
+                        LinkExt link = new LinkExt(l);
+                        links.Add(link);
                     }
-                };
+                    foreach (var l in links)
+                    {
+                        l.Icon = await LinkExt.GetIconAsync(httpClient, l.Url);
+                    }
+                }
             }
             catch (Exception ex)
             {
