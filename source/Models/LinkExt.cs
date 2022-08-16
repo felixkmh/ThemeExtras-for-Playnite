@@ -100,6 +100,7 @@ namespace Extras.Models
             { "youtube.com", '\uf167' },
             { "wordpress.com", '\uf411' },
             { "instagram.com", '\uF16D' },
+            { "www.instagram.com", '\uF16D' },
         });
 
         public static async Task<object> GetIconAsync(string Url)
