@@ -36,15 +36,22 @@ namespace Extras
         public static async Task<HttpClient> GetClientAsync()
         {
             await semaphore.WaitAsync();
-            if ((DateTime.Now - lastClientCreated) > timeout)
+            try
             {
-                client?.Dispose();
-                client = null;
+                if ((DateTime.Now - lastClientCreated) > timeout)
+                {
+                    client?.Dispose();
+                    client = null;
+                }
+                if (client == null)
+                {
+                    client = new HttpClient();
+                    lastClientCreated = DateTime.Now;
+                }
             }
-            if (client == null)
+            finally
             {
-                client = new HttpClient();
-                lastClientCreated = DateTime.Now;
+                semaphore.Release();
             }
             semaphore.Release();
             return client;
