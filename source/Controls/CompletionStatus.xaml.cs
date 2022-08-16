@@ -38,7 +38,7 @@ namespace Extras.Controls
         private void CompletionStatus_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
 
-            if (!(e.NewValue is Visibility.Visible))
+            if (!(e.NewValue is Visibility.Visible) && GameContext is Game)
             {
                 Playnite.SDK.API.Instance.Database.Games.Update(GameContext);
             }
