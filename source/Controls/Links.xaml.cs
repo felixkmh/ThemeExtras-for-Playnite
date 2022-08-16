@@ -70,7 +70,7 @@ namespace Extras.Controls
                     }
                     foreach (var l in links)
                     {
-                        l.Icon = await LinkExt.GetIconAsync(httpClient, l.Url);
+                        l.Icon = await LinkExt.GetIconAsync(l.Url);
                     }
                 }
             }

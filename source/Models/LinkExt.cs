@@ -102,7 +102,7 @@ namespace Extras.Models
             { "instagram.com", '\uF16D' },
         });
 
-        public static async Task<object> GetIconAsync(HttpClient httpClient, string Url)
+        public static async Task<object> GetIconAsync(string Url)
         {
             if (!Uri.TryCreate(Url, UriKind.Absolute, out var uri))
             {
@@ -282,7 +282,7 @@ namespace Extras.Models
                 try
                 {
                     Uri faviconUri = new Uri(faviconUrl);
-
+                    var httpClient = await HttpClientFactory.GetClientAsync();
                     var response = await httpClient.GetAsync(faviconUrl);
                     if (response.IsSuccessStatusCode)
                     {
