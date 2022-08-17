@@ -23,11 +23,14 @@ namespace Extras.Models
     public class LinkExt : Link
     {
         private static Dictionary<string, object> iconCache = new Dictionary<string, object>();
+        private static Dictionary<string, string> fileIconCache = new Dictionary<string, string>();
 
         private const string WebsiteIconResourcePrefix = "ThemeExtrasWebIcon_";
 
         private object icon = null;
         public object Icon { get => icon; set => SetValue(ref icon, value); }
+
+
 
         public ICommand OpenLinkCommand => new RelayCommand(() => 
         {
@@ -102,6 +105,44 @@ namespace Extras.Models
             { "instagram.com", '\uF16D' },
             { "www.instagram.com", '\uF16D' },
         });
+
+        private static string fileCachePath = null;
+
+        private static bool InitFileCache()
+        {
+            if (fileCachePath is null)
+            {
+                if (Extras.Instance?.GetPluginUserDataPath() is string userData)
+                {
+                    var path = Path.Combine(userData, "LinkIconCache");
+                    if (!Directory.Exists(path))
+                    {
+                        try
+                        {
+                            Directory.CreateDirectory(path);
+                            fileCachePath = path;
+                        }
+                        catch (Exception ex)
+                        {
+                            Extras.logger.Error(ex, $"Failed to create directory {path}");
+                            fileCachePath = null;
+                            return false;
+                        }
+                    }
+                    if (Directory.Exists(path))
+                    {
+                        fileCachePath = path;
+                        var dirInfo = new DirectoryInfo(fileCachePath);
+                        var imageFiles = dirInfo.EnumerateFiles()
+                            .Where(f => f.Extension.Equals(".ico", StringComparison.OrdinalIgnoreCase)
+                                     || f.Extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase)
+                                     || f.Extension.Equals(".png", StringComparison.OrdinalIgnoreCase));
+                        fileIconCache = imageFiles.ToDictionary(f => Path.GetFileNameWithoutExtension(f.Name), f => f.FullName);
+                    }
+                }
+            }
+            return true;
+        }
 
         public static async Task<object> GetIconAsync(string Url)
         {
@@ -279,6 +320,21 @@ namespace Extras.Models
 
             if (icon is null)
             {
+                if (InitFileCache())
+                {
+                    if (fileIconCache.TryGetValue(uri.Host, out var fileIcon))
+                    {
+                        var bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.UriSource = new Uri(fileIcon);
+                        bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.EndInit();
+                        icon = bitmap;
+                        iconCache[uri.Host] = icon;
+                        return new Image() { Source = bitmap };
+                    }
+                }
                 string faviconUrl = $@"http://www.google.com/s2/favicons?domain={uri.Host}&sz=32";
                 try
                 {
@@ -287,15 +343,25 @@ namespace Extras.Models
                     var response = await httpClient.GetAsync(faviconUrl);
                     if (response.IsSuccessStatusCode)
                     {
-                        var bitmap = new BitmapImage();
-                        bitmap.BeginInit();
-                        bitmap.StreamSource = await response.Content.ReadAsStreamAsync();
-                        bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
-                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                        bitmap.EndInit();
-                        icon = bitmap;
-                        iconCache[uri.Host] = icon;
-                        return new Image() { Source = bitmap };
+                        using (Stream stream = await response.Content.ReadAsStreamAsync())
+                        {
+                            var bitmap = new BitmapImage();
+                            bitmap.BeginInit();
+                            bitmap.StreamSource = stream;
+                            bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                            bitmap.EndInit();
+                            if (InitFileCache())
+                            {
+                                stream.Position = 0;
+                                string iconPath = Path.Combine(fileCachePath, uri.Host + ".ico");
+                                await stream.CopyToAsync(File.Create(iconPath));
+                            }
+                            icon = bitmap;
+                            iconCache[uri.Host] = icon;
+                            return new Image() { Source = bitmap };
+
+                        }
                     }
                 }
                 catch (Exception ex)
