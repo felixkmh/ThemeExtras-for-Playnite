@@ -164,6 +164,7 @@
     <ProjectReference Include="..\extern\PlayniteCommon\PlayniteCommon.csproj">
       <Project>{426461dc-3089-4ec5-99a2-a55733ed33fe}</Project>
       <Name>PlayniteCommon</Name>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
