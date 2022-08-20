@@ -1,6 +1,7 @@
 ﻿using Extras.Models;
 using Playnite.SDK.Controls;
 using Playnite.SDK.Models;
+using PlayniteCommon.Web;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

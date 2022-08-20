@@ -1,6 +1,7 @@
 ﻿using Playnite.SDK;
 using Playnite.SDK.Data;
 using Playnite.SDK.Models;
+using PlayniteCommon.Web;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -324,22 +325,32 @@ namespace Extras.Models
                 {
                     if (fileIconCache.TryGetValue(uri.Host, out var fileIcon))
                     {
-                        var bitmap = new BitmapImage();
-                        bitmap.BeginInit();
-                        bitmap.UriSource = new Uri(fileIcon);
-                        bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
-                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                        bitmap.EndInit();
-                        icon = bitmap;
-                        iconCache[uri.Host] = icon;
-                        return new Image() { Source = bitmap };
+                        try
+                        {
+                            if (File.Exists(fileIcon))
+                            {
+                                var bitmap = new BitmapImage();
+                                bitmap.BeginInit();
+                                bitmap.UriSource = new Uri(fileIcon);
+                                bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+                                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                                bitmap.EndInit();
+                                icon = bitmap;
+                                iconCache[uri.Host] = icon;
+                                return new Image() { Source = bitmap };
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Extras.logger.Error(ex, $"Failed to load link icon \"{fileIcon}\" for domain \"{domain}\".");
+                        }
                     }
                 }
                 string faviconUrl = $@"http://www.google.com/s2/favicons?domain={uri.Host}&sz=32";
                 try
                 {
                     Uri faviconUri = new Uri(faviconUrl);
-                    var httpClient = await HttpClientFactory.GetClientAsync();
+                    var httpClient = HttpClientFactory.GetClient();
                     var response = await httpClient.GetAsync(faviconUrl);
                     if (response.IsSuccessStatusCode)
                     {

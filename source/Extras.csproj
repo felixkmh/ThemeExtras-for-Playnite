@@ -84,14 +84,12 @@
     <Compile Include="ExtrasSettingsView.xaml.cs">
       <DependentUpon>ExtrasSettingsView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="HttpClientFactory.cs" />
     <Compile Include="MergedDictionary.cs" />
     <Compile Include="Models\FontIconInfo.cs" />
     <Compile Include="Models\LinkExt.cs" />
     <Compile Include="Models\ThemeExtrasManifest.cs" />
     <Compile Include="Models\ThemeManifest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UiHelper.cs" />
     <Compile Include="ViewModels\CompletionStatusViewModel.cs" />
     <Compile Include="ViewModels\FavoriteViewModel.cs" />
     <Compile Include="ViewModels\GamePropertyViewModel.cs" />
@@ -117,6 +115,7 @@
     <Content Include="Assets\Icons\origin.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="app.config" />
     <None Include="extension.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -42,7 +42,7 @@ namespace Extras.Controls
             var cc = (ContentControl)Parent;
             if (cc.Tag is DependencyObject dependencyObject)
             {
-                if (Helper.UiHelper.FindVisualChildren<MediaElement>(dependencyObject).FirstOrDefault() is MediaElement mediaElement)
+                if (PlayniteCommon.UI.UiHelper.FindVisualChildren<MediaElement>(dependencyObject).FirstOrDefault() is MediaElement mediaElement)
                 {
                     MediaElement = mediaElement;
                     SetBinding(VolumeProperty, new Binding(nameof(Volume))
