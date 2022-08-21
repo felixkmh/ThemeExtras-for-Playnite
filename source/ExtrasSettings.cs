@@ -262,6 +262,17 @@ namespace Extras
 
         private CommandSettings() { }
 
+        public static void DiscardNotification(NotificationMessage notificationMessage)
+        {
+            if (notificationMessage?.Id is string)
+            {
+                API.Instance.Notifications.Remove(notificationMessage.Id);
+            }
+        }
+
+        public ICommand DiscardNotificationCommand { get; } 
+            = new RelayCommand<NotificationMessage>(DiscardNotification);
+
         public static void UpdateGames(object sender, EventArgs args)
         {
             API.Instance.Database.Games.Update(API.Instance.MainView.SelectedGames);
