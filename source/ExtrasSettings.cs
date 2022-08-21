@@ -12,6 +12,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media.Animation;
 
 namespace Extras
 {
@@ -272,10 +273,16 @@ namespace Extras
                     var mainWindow = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w.Name == "WindowMain");
                     if (mainWindow is Window)
                     {
-                        var notifcationPanel = PlayniteCommon.UI.UiHelper.FindVisualChildren<FrameworkElement>(mainWindow, "PART_Notifications");
+                        var notifcationPanel = PlayniteCommon.UI.UiHelper.FindVisualChildren<FrameworkElement>(mainWindow, "PART_Notifications").FirstOrDefault();
                         if (notifcationPanel is FrameworkElement)
                         {
-                            
+                            if (PlayniteCommon.UI.UiHelper.FindVisualChildren<Button>(notifcationPanel, "PART_ButtonClose").FirstOrDefault() is Button closeButton)
+                            {
+                                if (closeButton.Command?.CanExecute(null) ?? false)
+                                {
+                                    closeButton.Command.Execute(null);
+                                }
+                            }
                         }
                     }
                 }
