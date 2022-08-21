@@ -262,6 +262,29 @@ namespace Extras
 
         private CommandSettings() { }
 
+        public static void DiscardNotification(NotificationMessage notificationMessage)
+        {
+            if (notificationMessage?.Id is string)
+            {
+                API.Instance.Notifications.Remove(notificationMessage.Id);
+                if (API.Instance.Notifications.Count == 0)
+                {
+                    var mainWindow = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w.Name == "WindowMain");
+                    if (mainWindow is Window)
+                    {
+                        var notifcationPanel = PlayniteCommon.UI.UiHelper.FindVisualChildren<FrameworkElement>(mainWindow, "PART_Notifications");
+                        if (notifcationPanel is FrameworkElement)
+                        {
+                            
+                        }
+                    }
+                }
+            }
+        }
+
+        public ICommand DiscardNotificationCommand { get; } 
+            = new RelayCommand<NotificationMessage>(DiscardNotification);
+
         public static void UpdateGames(object sender, EventArgs args)
         {
             API.Instance.Database.Games.Update(API.Instance.MainView.SelectedGames);

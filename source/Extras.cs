@@ -92,7 +92,8 @@ namespace Extras
                     if (!theme.IsDevTheme)
                     {
                         theme.Restore();
-                    } else
+                    }
+                    else
                     {
                         if (File.Exists(theme.LastChangeFilePath))
                         {
@@ -354,6 +355,26 @@ namespace Extras
             }
         }
 
+        public override IEnumerable<MainMenuItem> GetMainMenuItems(GetMainMenuItemsArgs args)
+        {
+#if DEBUG
+            yield return new MainMenuItem()
+            {
+                Description = "Test Notification",
+                Action = m => PlayniteApi.Notifications.Add(
+                    new NotificationMessage(
+                        Guid.NewGuid().ToString(), 
+                        "Hallo, das ist eine mittellange Benachrichtigung.", 
+                        NotificationType.Info, 
+                        () => API.Instance.Dialogs.ShowMessage("Hello, I'm a notification."))
+                    ),
+                MenuSection = ""
+            };
+#else
+            return null;
+#endif
+        }
+
         public override void OnGameInstalled(OnGameInstalledEventArgs args)
         {
             // Add code to be executed when game is finished installing.
@@ -393,7 +414,7 @@ namespace Extras
             PlayniteApi.Database.Games.ItemUpdated += Games_ItemUpdated;
             if (PlayniteApi.ApplicationInfo.Mode == ApplicationMode.Desktop)
             {
-                
+
             }
         }
 
