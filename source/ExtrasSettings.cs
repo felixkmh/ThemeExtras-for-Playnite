@@ -290,7 +290,7 @@ namespace Extras
         }
 
         public ICommand DiscardNotificationCommand { get; } 
-            = new RelayCommand<NotificationMessage>(DiscardNotification);
+            = new RelayCommand<NotificationMessage>(DiscardNotificationAsync);
 
         public static void UpdateGames(object sender, EventArgs args)
         {
