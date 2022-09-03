@@ -263,6 +263,39 @@ namespace Extras
 
         private CommandSettings() { }
 
+        private static void OpenUrl(object param)
+        {
+            try
+            {
+                string url = null;
+                switch (param)
+                {
+                    case string urlString:
+                        url = urlString;
+                        break;
+                    case Uri uri:
+                        url = uri.ToString();
+                        break;
+                    case Link link:
+                        url = link.Url;
+                        break;
+                    default:
+                        break;
+                }
+                if (!string.IsNullOrEmpty(url))
+                {
+                    System.Diagnostics.Process.Start(url);
+                }
+            }
+            catch (Exception ex)
+            {
+                Extras.logger.Error(ex, $"Failed to open url {param?.ToString()}.");
+            }
+        }
+
+        public ICommand OpenUrlCommand { get; } 
+            = new RelayCommand<object>(OpenUrl);
+
         public static void DiscardNotification(NotificationMessage notificationMessage)
         {
             if (notificationMessage?.Id is string)

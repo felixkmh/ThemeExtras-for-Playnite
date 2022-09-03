@@ -12,6 +12,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -73,6 +74,7 @@ namespace Extras.Models
             { "steampowered.com", '\uf1b6' },
             { "discord.gg", '\uf392' },
             { "discord.com", '\uf392' },
+            { "discordapp.com", '\uf392' },
             { "twitch.tv", '\uf1e8' },
             { "facebook.com", '\uf09a' },
             { "twitter.com", '\uf099' },
@@ -145,7 +147,32 @@ namespace Extras.Models
             return true;
         }
 
-        public static async Task<object> GetIconAsync(string Url)
+        private static void InvokeSafe(Action action)
+        {
+            var dispatcher = Playnite.SDK.API.Instance.MainView.UIDispatcher;
+            if (dispatcher.Thread.ManagedThreadId == Thread.CurrentThread.ManagedThreadId)
+            {
+                action?.Invoke();
+            } else
+            {
+                dispatcher.Invoke(action);
+            }
+        }
+
+        private static T InvokeSafe<T>(Func<T> action)
+        {
+            var dispatcher = Playnite.SDK.API.Instance.MainView.UIDispatcher;
+            if (dispatcher.Thread.ManagedThreadId == Thread.CurrentThread.ManagedThreadId)
+            {
+                return action.Invoke();
+            }
+            else
+            {
+                return dispatcher.Invoke(action);
+            }
+        }
+
+        public static object GetIcon(string Url)
         {
             if (!Uri.TryCreate(Url, UriKind.Absolute, out var uri))
             {
@@ -157,6 +184,273 @@ namespace Extras.Models
             object icon = null;
 
             while(domain.Contains("."))
+            {
+                if (iconCache.TryGetValue(domain, out icon))
+                {
+                    return InvokeSafe<object>(() =>
+                    {
+                        switch (icon)
+                        {
+                            case BitmapImage bitmapImage:
+                                return new Image() { Source = bitmapImage };
+                            case Tuple<char, FontFamily> iconString:
+                                return new TextBlock() { Text = iconString.Item1.ToString(), FontFamily = iconString.Item2 };
+                            default:
+                                return null;
+                        }
+                    });
+                }
+
+                if (icon is null)
+                {
+                    var dirInfo = new DirectoryInfo(UserIconDir);
+                    if (dirInfo.Exists)
+                    {
+                        var files = dirInfo.EnumerateFiles("*", SearchOption.AllDirectories)
+                            .Where(f => f.Extension.Equals(".ico", StringComparison.OrdinalIgnoreCase) ||
+                                        f.Extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
+                                        f.Extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase));
+                        var userIconPath = files
+                            .FirstOrDefault(f => Path.GetFileNameWithoutExtension(f.Name).Equals(domain, StringComparison.OrdinalIgnoreCase));
+
+                        if (userIconPath != null)
+                        {
+                            try
+                            {
+                                InvokeSafe(() =>
+                                {
+                                    var bitmap = new BitmapImage();
+                                    bitmap.BeginInit();
+                                    bitmap.UriSource = new Uri(userIconPath.FullName);
+                                    bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+                                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                                    bitmap.EndInit();
+                                    icon = bitmap;
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                icon = null;
+                                Extras.logger.Error(ex, $"Failed to load link icon \"{userIconPath}\" for domain \"{domain}\".");
+                            }
+                        }
+                    }
+                }
+
+                if (icon is null)
+                {
+                    var key = WebsiteIconResourcePrefix + domain;
+                    switch (ResourceProvider.GetResource(key))
+                    {
+                        case char iconChar:
+                            icon = new Tuple<char, FontFamily>(iconChar, ResourceProvider.GetResource("FontIcoFont") as FontFamily) ;
+                            break;
+                        case string iconString:
+                            icon = new Tuple<char, FontFamily>(iconString[0], ResourceProvider.GetResource("FontIcoFont") as FontFamily);
+                            break;
+                        case BitmapImage bitmapImage:
+                            icon = bitmapImage;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+
+                if (icon is null)
+                {
+                    if (ExtendedTheme.Current?.ThemeExtrasManifest?.WebsiteIconsPath is string path)
+                    {
+                        var fullPath = Path.Combine(ExtendedTheme.Current.RootPath, path);
+                        var dirInfo = new DirectoryInfo(fullPath);
+                        if (dirInfo.Exists)
+                        {
+                            var match = dirInfo.EnumerateFiles().Where(f => f.Name.StartsWith(domain)).FirstOrDefault();
+                            if (match is FileInfo)
+                            {
+                                try
+                                {
+                                    InvokeSafe(() =>
+                                    {
+                                        var bitmap = new BitmapImage();
+                                        bitmap.BeginInit();
+                                        bitmap.UriSource = new Uri(match.FullName);
+                                        bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+                                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                                        bitmap.EndInit();
+                                        icon = bitmap;
+                                    });
+                                }
+                                catch (Exception ex)
+                                {
+                                    icon = null;
+                                    Extras.logger.Error(ex, $"Failed to load link icon \"{match.FullName}\" for domain \"{domain}\".");
+                                }
+                            }
+                        }
+                    }
+                }
+
+                var hostToLower = domain.ToLower();
+                if (icon is null)
+                {
+
+                    if (FontAwesomeDict.TryGetValue(hostToLower, out var fontAwesomeChar))
+                    {
+                        icon = new Tuple<char, FontFamily>(fontAwesomeChar, FontAwesomeFont);
+                    }
+                }
+
+                if (icon is null)
+                {
+                    if (IconFontDict.TryGetValue(hostToLower, out var iconFontChar))
+                    {
+                        icon = new Tuple<char, FontFamily>(iconFontChar, IconFont);
+                    }
+                }
+
+                if (icon is null)
+                {
+                    if (FileIconDict.TryGetValue(hostToLower, out var iconUri))
+                    {
+                        try
+                        {
+                            InvokeSafe(() =>
+                            {
+                                var bitmap = new BitmapImage();
+                                bitmap.BeginInit();
+                                bitmap.UriSource = iconUri;
+                                bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+                                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                                bitmap.EndInit();
+                                icon = bitmap;
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            icon = null;
+                            Extras.logger.Error(ex, $"Failed to load link icon \"{iconUri}\" for domain \"{domain}\".");
+                        }
+                    }
+                }
+
+                if (icon is object)
+                {
+                    iconCache[uri.Host] = icon;
+                    iconCache[domain] = icon;
+                    return InvokeSafe<object>(() =>
+                    {
+                        switch (icon)
+                        {
+                            case BitmapImage bitmapImage:
+                                return new Image() { Source = bitmapImage };
+                            case Tuple<char, FontFamily> iconString:
+                                return new TextBlock() { Text = iconString.Item1.ToString(), FontFamily = iconString.Item2 };
+                            default:
+                                return null;
+                        }
+                    });
+                }
+
+                var index = domain.IndexOf('.');
+                if (index <= 0)
+                {
+                    break;
+                }
+                domain = domain.Substring(index + 1);
+
+            }
+
+            if (icon is null)
+            {
+                if (InitFileCache())
+                {
+                    if (fileIconCache.TryGetValue(uri.Host, out var fileIcon))
+                    {
+                        try
+                        {
+                            if (File.Exists(fileIcon))
+                            {
+                                Image image = null;
+                                InvokeSafe(() =>
+                                {
+                                    var bitmap = new BitmapImage();
+                                    bitmap.BeginInit();
+                                    bitmap.UriSource = new Uri(fileIcon);
+                                    bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+                                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                                    bitmap.EndInit();
+                                    icon = bitmap;
+                                    iconCache[uri.Host] = icon;
+                                    image = new Image() { Source = bitmap };
+                                });
+                                return image;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Extras.logger.Error(ex, $"Failed to load link icon \"{fileIcon}\" for domain \"{domain}\".");
+                        }
+                    }
+                }
+                string faviconUrl = $@"http://www.google.com/s2/favicons?domain={uri.Host}&sz=32";
+                try
+                {
+                    Uri faviconUri = new Uri(faviconUrl);
+                    var httpClient = HttpClientFactory.GetClient();
+                    var response = httpClient.GetAsync(faviconUrl).Result;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        using (Stream stream = response.Content.ReadAsStreamAsync().Result)
+                        {
+                            var bitmap = new BitmapImage();
+                            bitmap.BeginInit();
+                            bitmap.StreamSource = stream;
+                            bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                            bitmap.EndInit();
+                            if (InitFileCache())
+                            {
+                                stream.Position = 0;
+                                string iconPath = Path.Combine(fileCachePath, uri.Host + ".ico");
+                                stream.CopyTo(File.Create(iconPath));
+                            }
+                            icon = bitmap;
+                            iconCache[uri.Host] = icon;
+                            Image image = null;
+                            InvokeSafe(() =>
+                            {
+                                image = new Image { Source = bitmap };
+                            });
+                            return image;
+
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    icon = null;
+                    Extras.logger.Error(ex, $"Failed to load link icon \"{faviconUrl}\" for domain \"{domain}\".");
+                }
+            }
+
+            iconCache[uri.Host] = null;
+
+            return null;
+        }
+
+        public static async Task<object> GetIconAsync(string Url)
+        {
+            if (!Uri.TryCreate(Url, UriKind.Absolute, out var uri))
+            {
+                return null;
+            }
+
+            var domain = uri.Host ?? "";
+
+            object icon = null;
+
+            while (domain.Contains("."))
             {
                 if (iconCache.TryGetValue(domain, out icon))
                 {
@@ -210,7 +504,7 @@ namespace Extras.Models
                     switch (ResourceProvider.GetResource(key))
                     {
                         case char iconChar:
-                            icon = new Tuple<char, FontFamily>(iconChar, ResourceProvider.GetResource("FontIcoFont") as FontFamily) ;
+                            icon = new Tuple<char, FontFamily>(iconChar, ResourceProvider.GetResource("FontIcoFont") as FontFamily);
                             break;
                         case string iconString:
                             icon = new Tuple<char, FontFamily>(iconString[0], ResourceProvider.GetResource("FontIcoFont") as FontFamily);
