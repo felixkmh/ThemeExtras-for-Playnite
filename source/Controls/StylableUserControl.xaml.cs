@@ -28,6 +28,18 @@ namespace Extras.Controls
         private StylableUserControl()
         {
             InitializeComponent();
+            IsVisibleChanged += StylableUserControl_IsVisibleChanged;
+        }
+
+        private void StylableUserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (IsVisible)
+            {
+                ViewModel.Game = GameContext;
+            } else
+            {
+                ViewModel.Game = null;
+            } 
         }
 
         protected override void OnVisualParentChanged(DependencyObject oldParent)
@@ -48,7 +60,10 @@ namespace Extras.Controls
 
         public override void GameContextChanged(Game oldContext, Game newContext)
         {
-            ViewModel.Game = newContext;
+            if (IsVisible)
+            {
+                ViewModel.Game = newContext;
+            }
         }
 
         ~StylableUserControl()
