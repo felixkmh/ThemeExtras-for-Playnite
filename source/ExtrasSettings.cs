@@ -257,7 +257,7 @@ namespace Extras
         }
     }
 
-    public class CommandSettings
+    public class CommandSettings : ObservableObject
     {
         public static readonly CommandSettings Instance = new CommandSettings();
 
@@ -539,5 +539,9 @@ namespace Extras
                 }
             },
             id => true);
+
+        public ICommand BackCommand { get; } = new RelayCommand(Extras.Instance.NavigateBack, () => Extras.Instance.Navigation.CanGoBack);
+
+        public ICommand ForwardCommand { get; } = new RelayCommand(Extras.Instance.NavigateForward, () => Extras.Instance.Navigation.CanGoForward);
     }
 }

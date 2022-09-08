@@ -1,15 +1,19 @@
-﻿using Playnite.SDK;
+﻿using Extras.Models;
+using Playnite.SDK;
 using Playnite.SDK.Data;
 using Playnite.SDK.Events;
 using Playnite.SDK.Models;
 using Playnite.SDK.Plugins;
+using PlayniteCommon.UI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -88,7 +92,7 @@ namespace Extras
                 SourceName = ExtensionName,
                 Converters = new List<IValueConverter> {
                     new Converters.PowConverter(),
-                    new Converters.UrlToIconConverter()
+                    new Converters.UrlToAsyncIconConverter()
                 }
             });
 
@@ -235,6 +239,28 @@ namespace Extras
             .Where(p => GameSettingsProperties.Any(o => o.Name == p.Name))
             .ToArray();
 
+        internal Navigation Navigation = new Navigation();
+
+        public void NavigateBack()
+        {
+            if (Navigation.CanGoBack)
+            {
+                Navigation.Back();
+                Settings.Commands.OnPropertyChanged(nameof(CommandSettings.BackCommand));
+                Settings.Commands.OnPropertyChanged(nameof(CommandSettings.ForwardCommand));
+            }
+        }
+
+        public void NavigateForward()
+        {
+            if (Navigation.CanGoForward)
+            {
+                Navigation.Forward();
+                Settings.Commands.OnPropertyChanged(nameof(CommandSettings.BackCommand));
+                Settings.Commands.OnPropertyChanged(nameof(CommandSettings.ForwardCommand));
+            }
+        }
+
         public override void OnGameSelected(OnGameSelectedEventArgs args)
         {
             //if (args.NewValue.Count <= 1)
@@ -249,7 +275,24 @@ namespace Extras
             lastView = PlayniteApi.MainView.ActiveDesktopView;
             if (prevMode != lastView && lastSelected == null && prevSelected != null && Settings.EnableSelectionPreservation)
             {
-                PlayniteApi.MainView.SelectGames(prevSelected.Select(g => g.Id));
+                IEnumerable<Guid> gameIds = prevSelected.Select(g => g.Id);
+                if (!Enumerable.SequenceEqual(PlayniteApi.MainView.SelectedGames?.Select(g => g.Id) ?? Enumerable.Empty<Guid>(), gameIds ?? Enumerable.Empty<Guid>()))
+                {
+                    PlayniteApi.MainView.SelectGames(gameIds);
+                }
+            } else
+            {
+                LibraryNavigation item = new Models.LibraryNavigation
+                {
+                    SelectedIds = PlayniteApi.MainView.SelectedGames?.Select(g => g.Id).ToList() ?? new List<Guid>(),
+                    DesktopView = PlayniteApi.MainView.ActiveDesktopView
+                };
+                if (Navigation.Add(item))
+                {
+                    Settings.Commands.OnPropertyChanged(nameof(CommandSettings.BackCommand));
+                    Settings.Commands.OnPropertyChanged(nameof(CommandSettings.ForwardCommand));
+                    //Debug.WriteLine(item.ToString());
+                }
             }
 
             if (args.NewValue?.FirstOrDefault() is Game current)
@@ -425,6 +468,76 @@ namespace Extras
             {
 
             }
+            if (Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w.Name == "WindowMain") is Window mainWindow)
+            {
+                mainWindow.CommandBindings.Add(new CommandBinding(NavigationCommands.BrowseBack, (s, a) => { NavigateBack(); }, (s, a) => { a.CanExecute = Navigation.CanGoBack; }));
+                mainWindow.CommandBindings.Add(new CommandBinding(NavigationCommands.BrowseForward, (s, a) => { NavigateForward(); }, (s, a) => { a.CanExecute = Navigation.CanGoForward; }));
+
+                if (UiHelper.FindVisualChildren<StackPanel>(mainWindow, "PART_PanelSideBarItems").FirstOrDefault() is StackPanel sp)
+                {
+                    foreach(var bt in sp.Children.OfType<Button>())
+                    {
+                        if (bt.DataContext is ObservableObject observable)
+                        {
+                            observable.PropertyChanged += SidebarItemChanged;
+                            if (TryGetSidebarItemProperties(observable, out var selected, out _, out _) && selected)
+                            {
+                                librarySidebarWrapper = observable;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private object librarySidebarWrapper = null;
+
+        private void SidebarItemChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "Selected")
+            {
+                if (sender == librarySidebarWrapper)
+                {
+                    Navigation.Add(new LibraryNavigation
+                    {
+                        DesktopView = PlayniteApi.MainView.ActiveDesktopView,
+                        SelectedIds = PlayniteApi.MainView.SelectedGames.Select(g => g.Id).ToList(),
+                    });
+                } else
+                {
+                    AddViewNavigationPoint(sender);
+                }
+            }
+        }
+
+        private void AddViewNavigationPoint(object sender)
+        {
+            if (TryGetSidebarItemProperties(sender, out var selectedProperty, out var commandProperty, out var title))
+            {
+                if (selectedProperty && commandProperty is ICommand command)
+                {
+                    Navigation.Add(new ViewNavigation { ActivationCommand = command, Title = title });
+                }
+            }
+        }
+
+        private static bool TryGetSidebarItemProperties(object sender, out bool selected, out ICommand command, out string title)
+        {
+            title = "";
+            if (sender.GetType().GetProperty("Selected") is PropertyInfo _selectedProperty
+                                            && sender.GetType().GetProperty("Command") is PropertyInfo _commandProperty)
+            {
+                selected = _selectedProperty.GetValue(sender) as bool? ?? false;
+                command = _commandProperty.GetValue(sender) as ICommand;
+                if (sender.GetType().GetProperty("Title") is PropertyInfo titleProperty)
+                {
+                    title = titleProperty.GetValue(sender) as string;
+                }
+                return true;
+            }
+            selected = false;
+            command = null;
+            return false;
         }
 
         public override Control GetGameViewControl(GetGameViewControlArgs args)
