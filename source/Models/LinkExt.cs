@@ -439,7 +439,7 @@ namespace Extras.Models
             return null;
         }
 
-        public static async Task<object> GetIconAsync(string Url)
+        public static async Task<object> GetIconAsync(string Url, CancellationToken cancellationToken = default)
         {
             if (!Uri.TryCreate(Url, UriKind.Absolute, out var uri))
             {
@@ -645,7 +645,7 @@ namespace Extras.Models
                 {
                     Uri faviconUri = new Uri(faviconUrl);
                     var httpClient = HttpClientFactory.GetClient();
-                    var response = await httpClient.GetAsync(faviconUrl);
+                    var response = await httpClient.GetAsync(faviconUrl, cancellationToken);
                     if (response.IsSuccessStatusCode)
                     {
                         using (Stream stream = await response.Content.ReadAsStreamAsync())
@@ -660,7 +660,7 @@ namespace Extras.Models
                             {
                                 stream.Position = 0;
                                 string iconPath = Path.Combine(fileCachePath, uri.Host + ".ico");
-                                await stream.CopyToAsync(File.Create(iconPath));
+                                await stream.CopyToAsync(File.Create(iconPath), 81920, cancellationToken);
                             }
                             icon = bitmap;
                             iconCache[uri.Host] = icon;
@@ -672,7 +672,13 @@ namespace Extras.Models
                 catch (Exception ex)
                 {
                     icon = null;
-                    Extras.logger.Error(ex, $"Failed to load link icon \"{faviconUrl}\" for domain \"{domain}\".");
+                    if (!(ex is TaskCanceledException))
+                    {
+                        Extras.logger.Error(ex, $"Failed to load link icon \"{faviconUrl}\" for domain \"{domain}\".");
+                    } else
+                    {
+
+                    }
                 }
             }
 
