@@ -1,5 +1,11 @@
 AddonId: felixkmh_Extras_Plugin
 Packages:
+  - Version: 1.0.1
+    RequiredApiVersion: 6.3.0
+    ReleaseDate: 2022-09-18
+    PackageUrl: https://github.com/felixkmh/ThemeExtras-for-Playnite/releases/download/v1.0.1/felixkmh_Extras_Plugin_1_0_1.pext
+    Changelog:
+      - Fixed CanExecute on BackCommand and ForwardsCommand not updating correctly
   - Version: 1.0.0
     RequiredApiVersion: 6.3.0
     ReleaseDate: 2022-09-18
