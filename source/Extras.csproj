@@ -81,6 +81,7 @@
     <Compile Include="Converters\PowConverter.cs" />
     <Compile Include="Converters\UrlToAsyncIconConverter.cs" />
     <Compile Include="CustomElementCache.cs" />
+    <Compile Include="DirectoryBannerProvider.cs" />
     <Compile Include="ExtendedTheme.cs" />
     <Compile Include="Extras.cs" />
     <Compile Include="ExtrasSettings.cs" />
