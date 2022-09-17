@@ -576,8 +576,8 @@ namespace Extras
             },
             id => true);
 
-        public ICommand BackCommand { get; } = new RelayCommand(Extras.Instance.NavigateBack, () => Extras.Instance.Navigation.CanGoBack);
+        public ICommand BackCommand { get; } = new RaisableCommand(Extras.Instance.NavigateBack, () => Extras.Instance.Navigation.CanGoBack);
 
-        public ICommand ForwardCommand { get; } = new RelayCommand(Extras.Instance.NavigateForward, () => Extras.Instance.Navigation.CanGoForward);
+        public ICommand ForwardCommand { get; } = new RaisableCommand(Extras.Instance.NavigateForward, () => Extras.Instance.Navigation.CanGoForward);
     }
 }

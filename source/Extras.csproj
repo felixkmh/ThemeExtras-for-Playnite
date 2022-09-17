@@ -99,6 +99,7 @@
     <Compile Include="Models\ThemeManifest.cs" />
     <Compile Include="Navigation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RaisableCommand.cs" />
     <Compile Include="ViewModels\CompletionStatusViewModel.cs" />
     <Compile Include="ViewModels\FavoriteViewModel.cs" />
     <Compile Include="ViewModels\GamePropertyViewModel.cs" />

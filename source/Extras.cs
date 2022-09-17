@@ -254,8 +254,8 @@ namespace Extras
             if (Navigation.CanGoBack)
             {
                 Navigation.Back();
-                Settings.Commands.OnPropertyChanged(nameof(CommandSettings.BackCommand));
-                Settings.Commands.OnPropertyChanged(nameof(CommandSettings.ForwardCommand));
+                ((RaisableCommand)Settings.Commands.BackCommand).RaiseCanExecuteChanged();
+                ((RaisableCommand)Settings.Commands.ForwardCommand).RaiseCanExecuteChanged();
             }
         }
 
@@ -264,8 +264,8 @@ namespace Extras
             if (Navigation.CanGoForward)
             {
                 Navigation.Forward();
-                Settings.Commands.OnPropertyChanged(nameof(CommandSettings.BackCommand));
-                Settings.Commands.OnPropertyChanged(nameof(CommandSettings.ForwardCommand));
+                ((RaisableCommand)Settings.Commands.BackCommand).RaiseCanExecuteChanged();
+                ((RaisableCommand)Settings.Commands.ForwardCommand).RaiseCanExecuteChanged();
             }
         }
 
@@ -533,14 +533,16 @@ namespace Extras
             timer?.Stop();
             timer?.Dispose();
             timer = new System.Timers.Timer() { AutoReset = false, Interval = 500 };
-            timer.Elapsed += (s, e) => {
+            timer.Elapsed += (s, e) =>
+            {
                 PlayniteApi.MainView.UIDispatcher.Invoke(() =>
                 {
-                    if (Navigation.Add(navigationPoint))
-                    {
-                        Settings.Commands.OnPropertyChanged(nameof(CommandSettings.BackCommand));
-                        Settings.Commands.OnPropertyChanged(nameof(CommandSettings.ForwardCommand));
-                    }
+                    Navigation.Add(navigationPoint);
+                });
+                PlayniteApi.MainView.UIDispatcher.Invoke(() =>
+                {
+                    ((RaisableCommand)Settings.Commands.BackCommand).RaiseCanExecuteChanged();
+                    ((RaisableCommand)Settings.Commands.ForwardCommand).RaiseCanExecuteChanged();
                 });
             };
             timer.Start();

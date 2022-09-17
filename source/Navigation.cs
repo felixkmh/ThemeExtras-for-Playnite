@@ -36,8 +36,8 @@ namespace Extras
     {
         public const int MAX_STEPS = 50;
 
-        ObservableCollection<INavigationPoint> BackwardsStack { get; } = new ObservableCollection<INavigationPoint>();
-        ObservableCollection<INavigationPoint> ForwardsStack { get; } = new ObservableCollection<INavigationPoint>();
+        IList<INavigationPoint> BackwardsStack { get; } = new List<INavigationPoint>();
+        IList<INavigationPoint> ForwardsStack { get; } = new List<INavigationPoint>();
 
         INavigationPoint currentlyNavigating = null;
 
@@ -56,6 +56,8 @@ namespace Extras
                 // Extras.logger.Debug("Cleared forward stack.");
                 return true;
             }
+            OnPropertyChanged(nameof(CanGoBack));
+            OnPropertyChanged(nameof(CanGoForward));
             return false;
         }
 
