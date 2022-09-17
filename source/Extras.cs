@@ -98,7 +98,7 @@ namespace Extras
                     new Converters.PowConverter(),
                     new Converters.UrlToAsyncIconConverter(),
                     new Converters.MultiplicativeInverseConverter(),
-                    new Converters.DìvideConverter(),
+                    new Converters.DivideConverter(),
                     new Converters.MultiplyConverter()
                 }
             });

@@ -9,7 +9,7 @@ using System.Windows.Data;
 
 namespace Extras.Converters
 {
-    public class DìvideConverter : IValueConverter
+    public class DivideConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
