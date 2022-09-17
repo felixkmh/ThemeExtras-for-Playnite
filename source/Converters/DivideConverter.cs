@@ -9,15 +9,13 @@ using System.Windows.Data;
 
 namespace Extras.Converters
 {
-    public class PowConverter : IValueConverter
+    public class DìvideConverter : IValueConverter
     {
-        public static PowConverter Instance = new PowConverter();
-
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (System.Convert.ToDouble(value) is double b && System.Convert.ToDouble(parameter) is double e)
             {
-                return System.Convert.ChangeType(Math.Pow(b, e), targetType);
+                return System.Convert.ChangeType(b / e, targetType);
             }
             return DependencyProperty.UnsetValue;
         }
@@ -26,7 +24,7 @@ namespace Extras.Converters
         {
             if (System.Convert.ToDouble(value) is double b && System.Convert.ToDouble(parameter) is double e)
             {
-                return System.Convert.ChangeType(Math.Pow(b, e/1.0), targetType);
+                return System.Convert.ChangeType(b * e, targetType);
             }
             return DependencyProperty.UnsetValue;
         }

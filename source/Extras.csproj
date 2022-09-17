@@ -31,13 +31,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Playnite.SDK, Version=6.2.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\p10\build\Release\Playnite.SDK.dll</HintPath>
-    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="PresentationFramework.Aero2" />
+    <Reference Include="Playnite.SDK, Version=6.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\p10\build\Release\Playnite.SDK.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -78,6 +78,9 @@
       <DependentUpon>UserRating.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\IntToRatingBrushConverter.cs" />
+    <Compile Include="Converters\MultiplicativeInverseConverter.cs" />
+    <Compile Include="Converters\DivideConverter.cs" />
+    <Compile Include="Converters\MultiplyConverter.cs" />
     <Compile Include="Converters\PowConverter.cs" />
     <Compile Include="Converters\UrlToAsyncIconConverter.cs" />
     <Compile Include="CustomElementCache.cs" />
