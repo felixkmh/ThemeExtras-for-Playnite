@@ -17,6 +17,8 @@ namespace Extras
 
         public static ExtendedTheme Current { get; private set; }
 
+        protected DirectoryBannerProvider DirectoryBannerProvider { get; set; }
+
         public string Name => ThemeManifest.Name;
         public string Id => ThemeManifest.Id;
         public string RootPath { get; private set; }
@@ -27,12 +29,15 @@ namespace Extras
         public int BackedUpFilesCount => Directory.Exists(BackupPath) ? Directory.GetFiles(BackupPath, "*", SearchOption.AllDirectories).Count() : 0;
         public int PersistentFilesCount => GetPersistentFileCount();
         public bool IsCurrentTheme { get; private set; } = false;
-        public Dictionary<Platform, string> PlatformBanners => GetPlatformBanners();
-        public Dictionary<Guid, string> PluginBanners => GetPluginBanners();
-        public Dictionary<GameSource, string> SourceBanners => GetSourceBanners();
+
         public int? DecodeHeight => ThemeExtrasManifest.BannerDecodeHeight;
-        public string DefaultBanner => !string.IsNullOrEmpty(ThemeExtrasManifest.DefaultBannerPath) ? Path.Combine(RootPath, ThemeExtrasManifest.DefaultBannerPath) : null;
         public bool IsDevTheme => CheckDevTheme();
+
+        public Dictionary<Platform, string> PlatformBanners => DirectoryBannerProvider.PlatformBanners;
+        public Dictionary<Guid, string> PluginBanners => DirectoryBannerProvider.PluginBanners;
+        public Dictionary<GameSource, string> SourceBanners => DirectoryBannerProvider.SourceBanners;
+        public string DefaultBanner => DirectoryBannerProvider.DefaultBanner;
+
 
         private bool CheckDevTheme()
         {
@@ -82,6 +87,15 @@ namespace Extras
 
             extendedTheme.ThemeExtrasManifest = extrasManifest;
 
+            extendedTheme.DirectoryBannerProvider = new DirectoryBannerProvider 
+            { 
+                DefaultBanner = extrasManifest.DefaultBannerPath is string ? Path.Combine(themeRootPath, extrasManifest.DefaultBannerPath) : null,
+                BannersBySourceNamePath = extrasManifest.BannersBySourceNamePath is string ? Path.Combine(themeRootPath, extrasManifest.BannersBySourceNamePath) : null,
+                BannersByPlatformNamePath = extrasManifest.BannersByPlatformNamePath is string ? Path.Combine(themeRootPath, extrasManifest.BannersByPlatformNamePath) : null,
+                BannersByPluginIdPath = extrasManifest.BannersByPluginIdPath is string ? Path.Combine(themeRootPath, extrasManifest.BannersByPluginIdPath) : null,
+                BannersBySpecIdPath = extrasManifest.BannersBySpecIdPath is string ? Path.Combine(themeRootPath, extrasManifest.BannersBySpecIdPath) : null,
+            };
+
             var themManifestPath = Path.Combine(themeRootPath, Extras.ThemeManifestFileName);
             if (!File.Exists(themManifestPath))
             {
@@ -103,143 +117,6 @@ namespace Extras
             }
 
             return true;
-        }
-
-        public Dictionary<Platform, string> GetPlatformBanners()
-        {
-            var platformBanners = new Dictionary<Platform, string>();
-            var platformsBySpecId = Playnite.SDK.API.Instance.Database.Platforms
-                .Concat(new[] { Platform.Empty })
-                .Where(p => !string.IsNullOrEmpty(p.SpecificationId))
-                .GroupBy(p => p.SpecificationId)
-                .ToDictionary(g => g.First().SpecificationId, g => g.ToList());
-
-            if (ThemeExtrasManifest.BannersBySpecIdPath is string bannersBySpecIdPath)
-            {
-                var fullPath = Path.Combine(RootPath, bannersBySpecIdPath);
-                if (Directory.Exists(fullPath))
-                {
-                    var dirInfo = new DirectoryInfo(fullPath);
-                    var bannerPaths = dirInfo.EnumerateFiles("*", SearchOption.AllDirectories)
-                                             .Where(f => f.Extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
-                                                         f.Extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase));
-                    foreach (var bannerFile in bannerPaths)
-                    {
-                        var specIdString = Path.GetFileNameWithoutExtension(bannerFile.Name);
-                        if (platformsBySpecId.TryGetValue(specIdString, out var platforms))
-                        {
-                            foreach(var platform in platforms)
-                            {
-                                platformBanners[platform] = bannerFile.FullName;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (ThemeExtrasManifest.BannersByPlatformNamePath is string bannersByPlatformName)
-            {
-                var fullPath = Path.Combine(RootPath, bannersByPlatformName);
-                var platformsByName = Playnite.SDK.API.Instance.Database.Platforms
-                .Concat(new[] { Platform.Empty })
-                .Where(p => !string.IsNullOrEmpty(p.Name))
-                .GroupBy(p => p.Name)
-                .ToDictionary(p => p.First().Name, p => p.ToList());
-                if (Directory.Exists(fullPath))
-                {
-                    var dirInfo = new DirectoryInfo(fullPath);
-                    var bannerPaths = dirInfo.EnumerateFiles("*", SearchOption.AllDirectories)
-                                             .Where(f => f.Extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
-                                                         f.Extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
-                                                         f.Extension.Equals(".ico", StringComparison.OrdinalIgnoreCase));
-                    foreach (var bannerFile in bannerPaths)
-                    {
-                        var platformName = Path.GetFileNameWithoutExtension(bannerFile.Name);
-                        if (platformsByName.TryGetValue(platformName, out var platforms))
-                        {
-                            foreach(var platform in platforms)
-                            {
-                                if (!platformBanners.ContainsKey(platform))
-                                {
-                                    platformBanners[platform] = bannerFile.FullName;
-                                }
-
-                            }
-                        }
-                    }
-                }
-            }
-
-            return platformBanners;
-        }
-
-        public Dictionary<Guid, string> GetPluginBanners()
-        {
-            var pluginBanners = new Dictionary<Guid, string>();
-            var plugins = Playnite.SDK.API.Instance.Addons.Plugins
-                .OfType<LibraryPlugin>()
-                .Select(lp => lp.Id)
-                .Concat(new[] { Guid.Empty })
-                .ToHashSet();
-            if (ThemeExtrasManifest.BannersByPluginIdPath is string bannersByPluginId)
-            {
-                var fullPath = Path.Combine(RootPath, bannersByPluginId);
-                if (Directory.Exists(fullPath))
-                {
-                    var dirInfo = new DirectoryInfo(fullPath);
-                    var bannerPaths = dirInfo.EnumerateFiles("*", SearchOption.AllDirectories)
-                                             .Where(f => f.Extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
-                                                         f.Extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
-                                                         f.Extension.Equals(".ico", StringComparison.OrdinalIgnoreCase));
-                    foreach (var bannerFile in bannerPaths)
-                    {
-                        var pluginIdString = Path.GetFileNameWithoutExtension(bannerFile.Name);
-                        if (Guid.TryParse(pluginIdString, out var id) && plugins.Contains(id))
-                        {
-                            pluginBanners[id] = bannerFile.FullName;
-                        }
-                    }
-                }
-            }
-
-            return pluginBanners;
-        }
-
-        public Dictionary<GameSource, string> GetSourceBanners()
-        {
-            var sourceBanners = new Dictionary<GameSource, string>();
-            var sources = Playnite.SDK.API.Instance.Database.Sources
-                .Where(p => !string.IsNullOrEmpty(p.Name))
-                .GroupBy(p => p.Name)
-                .ToDictionary(p => p.First().Name, p => p.ToList());
-            if (ThemeExtrasManifest.BannersBySourceName is string bannersBySourceName)
-            {
-                var fullPath = Path.Combine(RootPath, bannersBySourceName);
-                if (Directory.Exists(fullPath))
-                {
-                    var dirInfo = new DirectoryInfo(fullPath);
-                    var bannerPaths = dirInfo.EnumerateFiles("*", SearchOption.AllDirectories)
-                                             .Where(f => f.Extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
-                                                         f.Extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
-                                                         f.Extension.Equals(".ico", StringComparison.OrdinalIgnoreCase));
-                    foreach (var bannerFile in bannerPaths)
-                    {
-                        var sourceNameString = Path.GetFileNameWithoutExtension(bannerFile.Name);
-                        if (sources.TryGetValue(sourceNameString, out var groupedSources))
-                        {
-                            foreach (var source in groupedSources)
-                            {
-                                if (!sourceBanners.ContainsKey(source))
-                                {
-                                    sourceBanners[source] = bannerFile.FullName;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return sourceBanners;
         }
 
         public int GetPersistentFileCount()
