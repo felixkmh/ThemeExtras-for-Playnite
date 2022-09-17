@@ -123,12 +123,7 @@ namespace Extras
                 }
             }
 
-            IBannerProvider pluginBannerProvider = new DirectoryBannerProvider
-            {
-
-            };
-
-            BannerCache = new BannerCache(extendedThemes.Where(t => t.IsCurrentTheme).Concat(new[] { pluginBannerProvider }).ToArray());
+            BannerCache = new BannerCache(extendedThemes.Where(t => t.IsCurrentTheme).ToArray());
         }
 
         private void Settings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
