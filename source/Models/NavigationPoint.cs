@@ -45,7 +45,7 @@ namespace Extras.Models
 
             if (api.MainView.ActiveDesktopView != DesktopView)
             {
-                api.MainView.ActiveDesktopView = DesktopView;
+                // api.MainView.ActiveDesktopView = DesktopView;
             }
             api.MainView.SelectGames(SelectedIds);
             api.MainView.SwitchToLibraryView();

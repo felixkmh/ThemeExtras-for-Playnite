@@ -87,15 +87,6 @@ namespace Extras
             });
             AddSettingsSupport(new AddSettingsSupportArgs { SourceName = ExtensionName, SettingsRoot = "settingsViewModel.Settings" });
 
-            AddConvertersSupport(new AddConvertersSupportArgs
-            {
-                SourceName = ExtensionName,
-                Converters = new List<IValueConverter> {
-                    new Converters.PowConverter(),
-                    new Converters.UrlToAsyncIconConverter()
-                }
-            });
-
             AddPropertiesAsResources<ICommand>(Settings.Commands);
 
             if (Settings.BackupAndRestore)
