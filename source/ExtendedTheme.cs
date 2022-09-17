@@ -137,7 +137,7 @@ namespace Extras
                 }
             }
 
-            if (ThemeExtrasManifest.BannersByPlatformName is string bannersByPlatformName)
+            if (ThemeExtrasManifest.BannersByPlatformNamePath is string bannersByPlatformName)
             {
                 var fullPath = Path.Combine(RootPath, bannersByPlatformName);
                 var platformsByName = Playnite.SDK.API.Instance.Database.Platforms

@@ -14,6 +14,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -149,7 +150,7 @@ namespace Extras.Models
 
         private static void InvokeSafe(Action action)
         {
-            var dispatcher = Playnite.SDK.API.Instance.MainView.UIDispatcher;
+            var dispatcher = Application.Current.Dispatcher;
             if (dispatcher.Thread.ManagedThreadId == Thread.CurrentThread.ManagedThreadId)
             {
                 action?.Invoke();
@@ -161,7 +162,7 @@ namespace Extras.Models
 
         private static T InvokeSafe<T>(Func<T> action)
         {
-            var dispatcher = Playnite.SDK.API.Instance.MainView.UIDispatcher;
+            var dispatcher = Application.Current.Dispatcher;
             if (dispatcher.Thread.ManagedThreadId == Thread.CurrentThread.ManagedThreadId)
             {
                 return action.Invoke();
