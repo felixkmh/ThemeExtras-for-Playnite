@@ -253,6 +253,9 @@ namespace Extras
         {
             if (Navigation.CanGoBack)
             {
+                timer?.Stop();
+                timer?.Dispose();
+                timer = null;
                 Navigation.Back();
                 ((RaisableCommand)Settings.Commands.BackCommand).RaiseCanExecuteChanged();
                 ((RaisableCommand)Settings.Commands.ForwardCommand).RaiseCanExecuteChanged();
@@ -263,6 +266,9 @@ namespace Extras
         {
             if (Navigation.CanGoForward)
             {
+                timer?.Stop();
+                timer?.Dispose();
+                timer = null;
                 Navigation.Forward();
                 ((RaisableCommand)Settings.Commands.BackCommand).RaiseCanExecuteChanged();
                 ((RaisableCommand)Settings.Commands.ForwardCommand).RaiseCanExecuteChanged();
