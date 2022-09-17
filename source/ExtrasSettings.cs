@@ -263,6 +263,42 @@ namespace Extras
 
         private CommandSettings() { }
 
+        public ICommand SwitchToDetailsViewCommand { get; } = new RelayCommand<Game>(SwitchToDetailsView);
+
+        private static void SwitchToDetailsView(Game game)
+        {
+            SwitchViewAndSelect(game, DesktopView.Details);
+        }
+
+        public ICommand SwitchToGridViewCommand { get; } = new RelayCommand<Game>(SwitchToGridView);
+
+        private static void SwitchToGridView(Game game)
+        {
+            SwitchViewAndSelect(game, DesktopView.Grid);
+        }
+
+        public ICommand SwitchToListViewCommand { get; } = new RelayCommand<Game>(SwitchToListView);
+
+        private static void SwitchToListView(Game game)
+        {
+            SwitchViewAndSelect(game, DesktopView.List);
+        }
+
+        private static void SwitchViewAndSelect(Game game, DesktopView view)
+        {
+            if (API.Instance.MainView.ActiveDesktopView != view)
+            {
+                if (game is Game)
+                {
+                    if (API.Instance.MainView.SelectedGames?.FirstOrDefault() != game)
+                    {
+                        API.Instance.MainView.SelectGame(game.Id);
+                    }
+                }
+                API.Instance.MainView.ActiveDesktopView = view;
+            }
+        }
+
         private static void OpenUrl(object param)
         {
             try
