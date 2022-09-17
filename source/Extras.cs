@@ -1,4 +1,5 @@
-﻿using Extras.Models;
+﻿using Extras.Abstractions.Navigation;
+using Extras.Models;
 using Playnite.SDK;
 using Playnite.SDK.Data;
 using Playnite.SDK.Events;
@@ -13,14 +14,17 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using static System.Reflection.BindingFlags;
 
 namespace Extras
@@ -92,7 +96,10 @@ namespace Extras
                 SourceName = ExtensionName,
                 Converters = new List<IValueConverter> {
                     new Converters.PowConverter(),
-                    new Converters.UrlToAsyncIconConverter()
+                    new Converters.UrlToAsyncIconConverter(),
+                    new Converters.MultiplicativeInverseConverter(),
+                    new Converters.DìvideConverter(),
+                    new Converters.MultiplyConverter()
                 }
             });
 
@@ -115,7 +122,13 @@ namespace Extras
                     }
                 }
             }
-            BannerCache = new BannerCache(extendedThemes.Where(t => t.IsCurrentTheme).ToArray());
+
+            IBannerProvider pluginBannerProvider = new DirectoryBannerProvider
+            {
+
+            };
+
+            BannerCache = new BannerCache(extendedThemes.Where(t => t.IsCurrentTheme).Concat(new[] { pluginBannerProvider }).ToArray());
         }
 
         private void Settings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -280,19 +293,15 @@ namespace Extras
                 {
                     PlayniteApi.MainView.SelectGames(gameIds);
                 }
-            } else
+            }
+            else
             {
                 LibraryNavigation item = new Models.LibraryNavigation
                 {
                     SelectedIds = PlayniteApi.MainView.SelectedGames?.Select(g => g.Id).ToList() ?? new List<Guid>(),
                     DesktopView = PlayniteApi.MainView.ActiveDesktopView
                 };
-                if (Navigation.Add(item))
-                {
-                    Settings.Commands.OnPropertyChanged(nameof(CommandSettings.BackCommand));
-                    Settings.Commands.OnPropertyChanged(nameof(CommandSettings.ForwardCommand));
-                    //Debug.WriteLine(item.ToString());
-                }
+                AddNavigationPointDelayed(item);
             }
 
             if (args.NewValue?.FirstOrDefault() is Game current)
@@ -415,9 +424,9 @@ namespace Extras
                 Description = "Test Notification",
                 Action = m => PlayniteApi.Notifications.Add(
                     new NotificationMessage(
-                        Guid.NewGuid().ToString(), 
-                        "Hallo, das ist eine mittellange Benachrichtigung.", 
-                        NotificationType.Info, 
+                        Guid.NewGuid().ToString(),
+                        "Hallo, das ist eine mittellange Benachrichtigung.",
+                        NotificationType.Info,
                         () => API.Instance.Dialogs.ShowMessage("Hello, I'm a notification."))
                     ),
                 MenuSection = ""
@@ -475,7 +484,7 @@ namespace Extras
 
                 if (UiHelper.FindVisualChildren<StackPanel>(mainWindow, "PART_PanelSideBarItems").FirstOrDefault() is StackPanel sp)
                 {
-                    foreach(var bt in sp.Children.OfType<Button>())
+                    foreach (var bt in sp.Children.OfType<Button>())
                     {
                         if (bt.DataContext is ObservableObject observable)
                         {
@@ -498,12 +507,13 @@ namespace Extras
             {
                 if (sender == librarySidebarWrapper)
                 {
-                    Navigation.Add(new LibraryNavigation
+                    AddNavigationPointDelayed(new LibraryNavigation
                     {
                         DesktopView = PlayniteApi.MainView.ActiveDesktopView,
                         SelectedIds = PlayniteApi.MainView.SelectedGames.Select(g => g.Id).ToList(),
                     });
-                } else
+                }
+                else
                 {
                     AddViewNavigationPoint(sender);
                 }
@@ -516,9 +526,29 @@ namespace Extras
             {
                 if (selectedProperty && commandProperty is ICommand command)
                 {
-                    Navigation.Add(new ViewNavigation { ActivationCommand = command, Title = title });
+                    AddNavigationPointDelayed(new ViewNavigation { ActivationCommand = command, Title = title });
                 }
             }
+        }
+
+        private System.Timers.Timer timer = null;
+
+        private void AddNavigationPointDelayed(INavigationPoint navigationPoint)
+        {
+            timer?.Stop();
+            timer?.Dispose();
+            timer = new System.Timers.Timer() { AutoReset = false, Interval = 500 };
+            timer.Elapsed += (s, e) => {
+                PlayniteApi.MainView.UIDispatcher.Invoke(() =>
+                {
+                    if (Navigation.Add(navigationPoint))
+                    {
+                        Settings.Commands.OnPropertyChanged(nameof(CommandSettings.BackCommand));
+                        Settings.Commands.OnPropertyChanged(nameof(CommandSettings.ForwardCommand));
+                    }
+                });
+            };
+            timer.Start();
         }
 
         private static bool TryGetSidebarItemProperties(object sender, out bool selected, out ICommand command, out string title)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -35,42 +36,42 @@ namespace Extras
     {
         public const int MAX_STEPS = 50;
 
-        List<INavigationPoint> backwardsStack = new List<INavigationPoint>();
-        List<INavigationPoint> forwardsStack = new List<INavigationPoint>();
+        ObservableCollection<INavigationPoint> BackwardsStack { get; } = new ObservableCollection<INavigationPoint>();
+        ObservableCollection<INavigationPoint> ForwardsStack { get; } = new ObservableCollection<INavigationPoint>();
 
         INavigationPoint currentlyNavigating = null;
 
         public bool Add(INavigationPoint navigationPoint)
         {
-            if (!navigationPoint.Equals(backwardsStack.LastOrDefault())
+            if (!navigationPoint.Equals(BackwardsStack.LastOrDefault())
                 && currentlyNavigating == null)
             {
-                backwardsStack.Push(navigationPoint);
+                BackwardsStack.Push(navigationPoint);
                 Extras.logger.Debug($"Pushed \"{navigationPoint}\"");
-                if (backwardsStack.Count > MAX_STEPS)
+                if (BackwardsStack.Count > MAX_STEPS)
                 {
-                    backwardsStack.RemoveAt(0);
+                    BackwardsStack.RemoveAt(0);
                 }
-                forwardsStack.Clear();
+                ForwardsStack.Clear();
                 // Extras.logger.Debug("Cleared forward stack.");
                 return true;
             }
             return false;
         }
 
-        public bool CanGoBack => backwardsStack.Count > 1;
-        public bool CanGoForward => forwardsStack.Count > 0;
+        public bool CanGoBack => BackwardsStack.Count > 1;
+        public bool CanGoForward => ForwardsStack.Count > 0;
 
         public void Back()
         {
-            if (backwardsStack.Count > 1)
+            if (BackwardsStack.Count > 1)
             {
-                forwardsStack.Push(backwardsStack.Pop());
-                if (forwardsStack.Count > MAX_STEPS)
+                ForwardsStack.Push(BackwardsStack.Pop());
+                if (ForwardsStack.Count > MAX_STEPS)
                 {
-                    forwardsStack.RemoveAt(0);
+                    ForwardsStack.RemoveAt(0);
                 }
-                currentlyNavigating = backwardsStack.Peek();
+                currentlyNavigating = BackwardsStack.Peek();
                 try
                 {
                     currentlyNavigating.Navigate();
@@ -88,14 +89,14 @@ namespace Extras
 
         public void Forward()
         {
-            if (forwardsStack.Count > 0)
+            if (ForwardsStack.Count > 0)
             {
-                backwardsStack.Push(forwardsStack.Pop());
-                if (backwardsStack.Count > MAX_STEPS)
+                BackwardsStack.Push(ForwardsStack.Pop());
+                if (BackwardsStack.Count > MAX_STEPS)
                 {
-                    backwardsStack.RemoveAt(0);
+                    BackwardsStack.RemoveAt(0);
                 }
-                currentlyNavigating = backwardsStack.Peek();
+                currentlyNavigating = BackwardsStack.Peek();
                 try
                 {
                     currentlyNavigating.Navigate();

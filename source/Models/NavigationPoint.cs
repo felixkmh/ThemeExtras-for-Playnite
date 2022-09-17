@@ -1,4 +1,6 @@
 ﻿using Extras.Abstractions.Navigation;
+using Playnite.SDK;
+using Playnite.SDK.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +14,8 @@ namespace Extras.Models
     {
         public string Title { get; set; } = "";
         public ICommand ActivationCommand { get; set; }
+
+        public string DisplayName => Title;
 
         public bool Equals(INavigationPoint other)
         {
@@ -29,7 +33,7 @@ namespace Extras.Models
 
         public override string ToString()
         {
-            return $"Switch to {Title} view.";
+            return DisplayName;
         }
     }
 
@@ -38,6 +42,48 @@ namespace Extras.Models
         public IList<Guid> SelectedIds { get; set; } = new List<Guid>();
 
         public Playnite.SDK.DesktopView DesktopView { get; set; }
+
+        private Lazy<string> displayName;
+
+        public string DisplayName => displayName.Value;
+
+        public LibraryNavigation()
+        {
+            displayName = new Lazy<string>(GetDisplayName);
+        }
+
+        private string GetDisplayName()
+        {
+            var sb = new StringBuilder();
+            switch (DesktopView)
+            {
+                case DesktopView.Details:
+                    sb.Append(ResourceProvider.GetString("LOCDetailsViewLabel"));
+                    break;
+                case DesktopView.Grid:
+                    sb.Append(ResourceProvider.GetString("LOCGridViewLabel"));
+                    break;
+                case DesktopView.List:
+                    sb.Append(ResourceProvider.GetString("LOCListViewLabel"));
+                    break;
+                default:
+                    break;
+            }
+            var selectedGames = SelectedIds
+                .Select(id => API.Instance.Database.Games.Get(id))
+                .OfType<Game>()
+                .ToList();
+            if (selectedGames.Any())
+            {
+                sb.Append(" - ");
+                sb.Append(selectedGames.First().Name);
+            }
+            if (selectedGames.Count > 1)
+            {
+                sb.Append(", ...");
+            }
+            return sb.ToString();
+        }
 
         public void Navigate()
         {
@@ -53,7 +99,7 @@ namespace Extras.Models
 
         public override string ToString()
         {
-            return String.Format("{0} - [{1}]", DesktopView.ToString(), string.Join(", ", SelectedIds.Select(id => Playnite.SDK.API.Instance.Database.Games.Get(id).Name)));
+            return DisplayName;
         }
 
         public override int GetHashCode()

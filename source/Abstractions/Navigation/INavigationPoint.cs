@@ -9,5 +9,6 @@ namespace Extras.Abstractions.Navigation
     public interface INavigationPoint : IEquatable<INavigationPoint>
     {
         void Navigate();
+        string DisplayName { get; }
     }
 }
