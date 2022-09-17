@@ -1,5 +1,12 @@
 AddonId: felixkmh_Extras_Plugin
 Packages:
+  - Version: 0.2.1
+    RequiredApiVersion: 6.2.2
+    ReleaseDate: 2022-09-17
+    PackageUrl: https://github.com/felixkmh/ThemeExtras-for-Playnite/releases/download/v0.2.1/felixkmh_Extras_Plugin_0_2_1.pext
+    Changelog:
+      - Added navigation using browse back and forwards shortcuts
+      - Fixed platform banners by platform name not being found
   - Version: 0.2.0
     RequiredApiVersion: 6.2.2
     ReleaseDate: 2022-08-21
