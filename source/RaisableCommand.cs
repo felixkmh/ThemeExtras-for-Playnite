@@ -71,20 +71,12 @@ namespace Extras
                 return true;
             }
 
-            if (parameter is T value)
-            {
-                return canExecute(value);
-            }
-
-            return false;
+            return canExecute((T)parameter);
         }
 
         public void Execute(object parameter = null)
         {
-            if (parameter is T value)
-            {
-                execute(value);
-            }
+            execute((T)parameter);
         }
 
         public void RaiseCanExecuteChanged()
