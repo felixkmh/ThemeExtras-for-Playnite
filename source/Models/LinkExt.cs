@@ -440,6 +440,8 @@ namespace Extras.Models
             return null;
         }
 
+        protected static SemaphoreSlim semaphore = new SemaphoreSlim(5);
+
         public static async Task<object> GetIconAsync(string Url, CancellationToken cancellationToken = default)
         {
             if (!Uri.TryCreate(Url, UriKind.Absolute, out var uri))
@@ -644,6 +646,8 @@ namespace Extras.Models
                 string faviconUrl = $@"http://www.google.com/s2/favicons?domain={uri.Host}&sz=32";
                 try
                 {
+                    await semaphore.WaitAsync();
+
                     Uri faviconUri = new Uri(faviconUrl);
                     var httpClient = HttpClientFactory.GetClient();
                     var response = await httpClient.GetAsync(faviconUrl, cancellationToken);
@@ -680,6 +684,10 @@ namespace Extras.Models
                     {
 
                     }
+                }
+                finally
+                {
+                    semaphore.Release();
                 }
             }
 
