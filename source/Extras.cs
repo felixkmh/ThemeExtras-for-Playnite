@@ -99,7 +99,8 @@ namespace Extras
                     new Converters.UrlToAsyncIconConverter(),
                     new Converters.MultiplicativeInverseConverter(),
                     new Converters.DivideConverter(),
-                    new Converters.MultiplyConverter()
+                    new Converters.MultiplyConverter(),
+                    new Converters.DoubleToSmoothedValueConverter()
                 }
             });
 
@@ -538,7 +539,7 @@ namespace Extras
         {
             timer?.Stop();
             timer?.Dispose();
-            timer = new System.Timers.Timer() { AutoReset = false, Interval = 500 };
+            timer = new System.Timers.Timer() { AutoReset = false, Interval = 250 };
             timer.Elapsed += (s, e) =>
             {
                 PlayniteApi.MainView.UIDispatcher.Invoke(() =>

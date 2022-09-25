@@ -82,6 +82,7 @@
     <Compile Include="Converters\DivideConverter.cs" />
     <Compile Include="Converters\MultiplyConverter.cs" />
     <Compile Include="Converters\PowConverter.cs" />
+    <Compile Include="Converters\SmoothDoubleConverter.cs" />
     <Compile Include="Converters\UrlToAsyncIconConverter.cs" />
     <Compile Include="CustomElementCache.cs" />
     <Compile Include="DirectoryBannerProvider.cs" />
@@ -104,6 +105,7 @@
     <Compile Include="ViewModels\FavoriteViewModel.cs" />
     <Compile Include="ViewModels\GamePropertyViewModel.cs" />
     <Compile Include="ViewModels\IStylableViewModel.cs" />
+    <Compile Include="ViewModels\Objects\SmoothedValue.cs" />
     <Compile Include="ViewModels\ThemeExtrasManifestViewModel.cs" />
   </ItemGroup>
   <ItemGroup>

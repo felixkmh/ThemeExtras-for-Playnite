@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
@@ -394,28 +395,42 @@ namespace Extras
             }, _ => API.Instance?.MainView?.SelectedGames?.Count() > 0);
 
         public ICommand OpenGameAssetFolderCommand { get; }
-            = new RelayCommand(
-            () =>
+            = new RelayCommand<Game>(
+            game =>
             {
+                string path = null;
                 var api = API.Instance;
-                if (api?.MainView?.SelectedGames?.FirstOrDefault() is Game selected)
+                if (game is Game)
                 {
-                    var path = Path.Combine(api.Database.DatabasePath, "files", selected.Id.ToString());
-                    if (Directory.Exists(path))
+                    path = Path.Combine(api.Database.DatabasePath, "files", game.Id.ToString());
+                } else
+                {
+                    if (api?.MainView?.SelectedGames?.FirstOrDefault() is Game selected)
                     {
-                        System.Diagnostics.Process.Start(path);
+                        path = Path.Combine(api.Database.DatabasePath, "files", selected.Id.ToString());
                     }
                 }
-            },
-            () =>
-            {
-                var api = API.Instance;
-                if (api?.MainView?.SelectedGames?.FirstOrDefault() is Game selected)
+                if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
                 {
-                    var path = Path.Combine(api.Database.DatabasePath, "files", selected.Id.ToString());
-                    return Directory.Exists(path);
+                    System.Diagnostics.Process.Start(path);
                 }
-                return false;
+            },
+            game =>
+            {
+                string path = null;
+                var api = API.Instance;
+                if (game is Game)
+                {
+                    path = Path.Combine(api.Database.DatabasePath, "files", game.Id.ToString());
+                }
+                else
+                {
+                    if (api?.MainView?.SelectedGames?.FirstOrDefault() is Game selected)
+                    {
+                        path = Path.Combine(api.Database.DatabasePath, "files", selected.Id.ToString());
+                    }
+                }
+                return !string.IsNullOrEmpty(path) && Directory.Exists(path);
             });
 
         public static void OpenPlayniteSettings(object sender, EventArgs args)
