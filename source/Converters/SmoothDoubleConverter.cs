@@ -21,6 +21,8 @@ namespace Extras.Converters
                 var options = optionsString.Split(',');
                 string bindingPath = null;
                 var duration = new Duration(TimeSpan.FromSeconds(0.15));
+                var descending = false;
+                string easingFunction = null;
                 if (options.Length > 0)
                 {
                     bindingPath = options[0].Trim();
@@ -32,9 +34,20 @@ namespace Extras.Converters
                         duration = new Duration(TimeSpan.FromSeconds(seconds));
                     }
                 }
+                if (options.Length > 2)
+                {
+                    if (bool.TryParse(options[2].Trim(), out var b))
+                    {
+                        descending = b;
+                    }
+                }
+                if (options.Length > 3)
+                {
+                    easingFunction = options[3].Trim();
+                }
                 if (!string.IsNullOrEmpty(bindingPath))
                 {
-                    var smoothValue = new SmoothedValue(element, bindingPath, duration);
+                    var smoothValue = new SmoothedValue(element, bindingPath, duration, descending, easingFunction);
                     return smoothValue;
                 }
             }

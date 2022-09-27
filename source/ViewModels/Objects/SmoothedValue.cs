@@ -15,12 +15,26 @@ namespace Extras.ViewModels.Objects
 
         protected Duration animationDuration;
 
-        public SmoothedValue(FrameworkElement element, string bindingPath, Duration duration)
+        protected bool descending = false;
+
+        protected IEasingFunction easingFunction;
+
+        public SmoothedValue(FrameworkElement element, string bindingPath, Duration duration, bool descending, string easingFunction)
         {
             animationDuration = duration;
+            this.descending = descending;
             SetBinding(TargetValueProperty, new Binding(bindingPath) { Source = element, Mode = BindingMode.OneWay });
             element.IsVisibleChanged += Element_IsVisibleChanged;
             element.Unloaded += Element_Unloaded;
+
+            switch (easingFunction)
+            {
+                case nameof(ElasticEase):
+                    this.easingFunction = new ElasticEase() { Oscillations = 1, Springiness = 1 };
+                    break;
+                default:
+                    break;
+            }
         }
 
         public double CurrentValue
@@ -39,9 +53,13 @@ namespace Extras.ViewModels.Objects
         {
             var target = (SmoothedValue)d;
             var targetValue = (double)e.NewValue;
-            if (targetValue > target.CurrentValue)
+            if (targetValue > target.CurrentValue || target.descending)
             {
                 var animation = new DoubleAnimation(targetValue, target.animationDuration);
+                if (target.easingFunction != null)
+                {
+                    animation.EasingFunction = target.easingFunction;
+                }
                 target.BeginAnimation(CurrentValueProperty, animation, HandoffBehavior.SnapshotAndReplace);
             }
             else
