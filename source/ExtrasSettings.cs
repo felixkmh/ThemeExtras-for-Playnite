@@ -50,6 +50,9 @@ namespace Extras
         private bool backupAndRestore = true;
         public bool BackupAndRestore { get => backupAndRestore; set => SetValue(ref backupAndRestore, value); }
 
+        private Dictionary<string, Dictionary<string, string>> persistentResources = new Dictionary<string, Dictionary<string, string>>();
+        public Dictionary<string, Dictionary<string, string>> PersistentResources { get => persistentResources; set => SetValue(ref persistentResources, value); }
+
         [DontSerialize]
         public CommandSettings Commands { get; } = CommandSettings.Instance;
 

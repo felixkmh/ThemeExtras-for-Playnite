@@ -27,6 +27,7 @@ namespace Extras.Models
         public List<Recommendation> Recommendations { get; set; }
 
         public List<string> PersistentPaths { get; set; }
+        public List<string> PersistentResources { get; set; }
 
         public string DefaultBannerPath { get; set; }
         public string BannersBySpecIdPath { get; set; }

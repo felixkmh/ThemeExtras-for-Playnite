@@ -16,6 +16,9 @@ namespace Extras.Converters
             if (System.Convert.ToDouble(value) is double b && b != 0.0)
             {
                 return System.Convert.ChangeType(1.0 / b, targetType);
+            } else if (parameter is string fallback && double.TryParse(fallback, out var fallbackValue))
+            {
+                return fallbackValue;
             }
             return DependencyProperty.UnsetValue;
         }

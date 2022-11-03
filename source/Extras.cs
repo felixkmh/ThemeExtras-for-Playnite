@@ -56,6 +56,7 @@ namespace Extras
         public ExtrasSettingsViewModel settingsViewModel { get; set; }
 
         public override Guid Id { get; } = Guid.Parse("d2039edd-78f5-47c5-b190-72afef560fbe");
+        public ExtendedTheme CurrentTheme { get; private set; }
 
         public readonly BannerCache BannerCache;
 
@@ -65,6 +66,8 @@ namespace Extras
             settingsViewModel = new ExtrasSettingsViewModel(this);
             var extendedThemes = ExtendedTheme.CreateExtendedManifests();
             settingsViewModel.ExtendedThemesViewModel = new ViewModels.ThemeExtrasManifestViewModel(extendedThemes);
+
+            CurrentTheme = extendedThemes.FirstOrDefault(theme => theme.IsCurrentTheme);
 
             Properties = new GenericPluginProperties
             {
@@ -112,7 +115,7 @@ namespace Extras
                 {
                     if (!theme.IsDevTheme)
                     {
-                        theme.Restore();
+                        theme.RestoreFiles();
                     }
                     else
                     {
@@ -499,6 +502,14 @@ namespace Extras
                     }
                 }
             }
+
+            if (CurrentTheme != null)
+            {
+                if (Settings.PersistentResources.TryGetValue(CurrentTheme.Id, out var resources))
+                {
+                    CurrentTheme.SetResources(resources);
+                }
+            }
         }
 
         private object librarySidebarWrapper = null;
@@ -637,7 +648,7 @@ namespace Extras
                 {
                     if (!theme.IsDevTheme)
                     {
-                        theme.Backup();
+                        theme.BackupFiles();
                     }
                     else
                     {
@@ -648,6 +659,12 @@ namespace Extras
                     }
                 }
             }
+
+            if (CurrentTheme != null)
+            {
+                Settings.PersistentResources[CurrentTheme.Id] = CurrentTheme.GetResources();
+            }
+            SavePluginSettings(Settings);
         }
 
         public override void OnLibraryUpdated(OnLibraryUpdatedEventArgs args)

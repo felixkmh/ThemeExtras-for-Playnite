@@ -53,7 +53,7 @@ namespace Extras.ViewModels.Objects
         {
             var target = (SmoothedValue)d;
             var targetValue = (double)e.NewValue;
-            if (targetValue > target.CurrentValue || target.descending)
+            if ((targetValue > target.CurrentValue || target.descending) && targetValue != 0.0)
             {
                 var animation = new DoubleAnimation(targetValue, target.animationDuration);
                 if (target.easingFunction != null)

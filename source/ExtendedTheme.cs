@@ -1,12 +1,16 @@
-﻿using Playnite.SDK.Models;
+﻿using Playnite.SDK;
+using Playnite.SDK.Data;
+using Playnite.SDK.Models;
 using Playnite.SDK.Plugins;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Resources;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using static Extras.BannerCache;
 
 namespace Extras
@@ -155,6 +159,46 @@ namespace Extras
             }
         }
 
+        public Dictionary<string, string> GetResources()
+        {
+            Dictionary<string, string> resources = new Dictionary<string, string>();
+
+            //if (ThemeExtrasManifest?.PersistentResources != null)
+            //{
+            //    foreach(var resourceKey in ThemeExtrasManifest.PersistentResources)
+            //    {
+            //        if (Application.Current.Resources.Contains(resourceKey))
+            //        {
+            //            resources[resourceKey] = Serialization.ToJson(Application.Current.Resources[resourceKey]);
+            //        }
+            //    }
+            //}
+
+            return resources;
+        }
+
+        public void SetResources(Dictionary<string, string> resources)
+        {
+            //foreach(var resource in resources)
+            //{
+            //    if (Application.Current.Resources.Contains(resource.Key))
+            //    {
+            //        var type = Application.Current.Resources[resource.Key]?.GetType();
+            //        try
+            //        {
+            //            if (Newtonsoft.Json.JsonConvert.DeserializeObject(resource.Value, type) is object value)
+            //            {
+            //                Application.Current.Resources[resource.Key] = value;
+            //            }
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //            Extras.logger.Error(ex, $"Failed to deserialize resource with key {resource.Value} to type {type.Name}.");
+            //        }
+            //    }
+            //}
+        }
+
         public void ClearBackup()
         {
             if (Directory.Exists(BackupPath))
@@ -164,7 +208,7 @@ namespace Extras
             }
         }
 
-        public void Backup()
+        public void BackupFiles()
         {
             if (ThemeExtrasManifest.PersistentPaths is IEnumerable<string> relativePaths)
             {
@@ -303,7 +347,7 @@ namespace Extras
             }
         }
 
-        public void Restore()
+        public void RestoreFiles()
         {
             if (ThemeExtrasManifest.PersistentPaths is IEnumerable<string> relativePaths)
             {
