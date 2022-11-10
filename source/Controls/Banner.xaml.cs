@@ -29,7 +29,41 @@ namespace Extras.Controls
             this.bannerCache = bannerCache;
         }
 
-        public override void GameContextChanged(Game oldContext, Game newContext)
+        protected override void OnVisualParentChanged(DependencyObject oldParent)
+        {
+            var parent = Parent;
+            if (parent is DependencyObject)
+            {
+                SetBinding(TagProperty, new Binding("Tag") { Source = parent });
+            }
+            else
+            {
+                BindingOperations.ClearBinding(this, TagProperty);
+            }
+            base.OnVisualParentChanged(oldParent);
+        }
+
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            if (e.Property == TagProperty)
+            {
+                var oldValue = e.OldValue as Game ?? GameContext;
+                var newValue = e.NewValue as Game ?? GameContext;
+
+                OnGameContextChanged(oldValue, newValue);
+            }
+            if (e.Property == GameContextProperty && !(Tag is Game))
+            {
+                var oldValue = e.OldValue as Game;
+                var newValue = e.NewValue as Game;
+
+                OnGameContextChanged(oldValue, newValue);
+            }
+
+            base.OnPropertyChanged(e);
+        }
+
+        public void OnGameContextChanged(Game oldContext, Game newContext)
         {
             if (oldContext is Game)
             {
