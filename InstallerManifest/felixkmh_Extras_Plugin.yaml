@@ -1,5 +1,11 @@
 AddonId: felixkmh_Extras_Plugin
 Packages:
+  - Version: 1.2.0
+    RequiredApiVersion: 6.4.0
+    ReleaseDate: 2022-11-11
+    PackageUrl: https://github.com/felixkmh/ThemeExtras-for-Playnite/releases/download/v1.2.0/felixkmh_Extras_Plugin_1_2_0.pext
+    Changelog:
+      - Banner source game can be overriden by setting the Tag of the containing ContentControl to a Game object
   - Version: 1.1.1
     RequiredApiVersion: 6.4.0
     ReleaseDate: 2022-11-04
