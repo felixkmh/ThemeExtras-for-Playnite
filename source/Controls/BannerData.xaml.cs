@@ -32,7 +32,7 @@ namespace Extras.Controls
 
         // Using a DependencyProperty as the backing store for BannerSource.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty BannerSourceProperty =
-            DependencyProperty.Register(nameof(BannerSource), typeof(ImageSource), typeof(ImageSource), new PropertyMetadata(default(ImageSource)));
+            DependencyProperty.Register(nameof(BannerSource), typeof(ImageSource), typeof(BannerData), new PropertyMetadata(default(ImageSource)));
 
         public double BannerHeight
         {
