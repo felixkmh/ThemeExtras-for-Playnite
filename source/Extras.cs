@@ -44,6 +44,7 @@ namespace Extras
         internal const string SettableHidden = "SettableHidden";
         internal const string SettableUserScore = "SettableUserScore";
         internal const string BannerElement = "Banner";
+        internal const string BannerData = "BannerData";
         internal const string LinksElement = "Links";
         internal const string MediaControlsElement = "MediaElementControls";
 
@@ -88,6 +89,7 @@ namespace Extras
                     CriticRatingElement,
                     CompletionStatusComboBox,
                     BannerElement,
+                    BannerData,
                     LinksElement,
                     //MediaControlsElement,
                 }.SelectMany(e => Enumerable.Range(0, 3).Select(i => e + (i == 0 ? "" : i.ToString()))).ToList()
@@ -103,7 +105,8 @@ namespace Extras
                     new Converters.MultiplicativeInverseConverter(),
                     new Converters.DivideConverter(),
                     new Converters.MultiplyConverter(),
-                    new Converters.DoubleToSmoothedValueConverter()
+                    new Converters.DoubleToSmoothedValueConverter(),
+                    new Converters.DoubleToCornerRadiusConverter(),
                 }
             });
 
@@ -629,6 +632,8 @@ namespace Extras
                     return new Controls.CriticRating();
                 case BannerElement:
                     return new Controls.Banner(BannerCache);
+                case BannerData:
+                    return new Controls.BannerData(BannerCache);
                 case LinksElement:
                     return new Controls.Links();
                 case MediaControlsElement:

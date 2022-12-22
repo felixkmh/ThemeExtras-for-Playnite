@@ -49,6 +49,9 @@
   <ItemGroup>
     <Compile Include="Abstractions\Navigation\INavigationPoint.cs" />
     <Compile Include="BannerCache.cs" />
+    <Compile Include="Controls\BannerData.xaml.cs">
+      <DependentUpon>BannerData.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\Banner.xaml.cs">
       <DependentUpon>Banner.xaml</DependentUpon>
     </Compile>
@@ -78,6 +81,8 @@
     <Compile Include="Converters\DivideConverter.cs" />
     <Compile Include="Converters\MultiplyConverter.cs" />
     <Compile Include="Converters\PowConverter.cs" />
+    <Compile Include="Converters\ProductConverter.cs" />
+    <Compile Include="Converters\DoubleToCornerRadiusConverter.cs" />
     <Compile Include="Converters\SmoothDoubleConverter.cs" />
     <Compile Include="Converters\UrlToAsyncIconConverter.cs" />
     <Compile Include="CustomElementCache.cs" />
@@ -129,6 +134,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Controls\BannerData.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Controls\Banner.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
