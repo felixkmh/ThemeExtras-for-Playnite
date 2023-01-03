@@ -50,8 +50,17 @@ namespace Extras
 
         internal const string ExtrasManifestFileName = "themeExtras.yaml";
         internal const string ThemeManifestFileName = "theme.yaml";
+        internal const string BannersDirectoryName = "Banners";
 
         public string UserLinkIconDir => Path.Combine(GetPluginUserDataPath(), "LinkIcons");
+
+        public string DefaultBannerOverride => Path.Combine(GetPluginUserDataPath(), BannersDirectoryName, "Default.png");
+        public string BannersBySourceNameOverride => Path.Combine(GetPluginUserDataPath(), BannersDirectoryName, "BySourceName");
+        public string BannersByPlatformIdOverride => Path.Combine(GetPluginUserDataPath(), BannersDirectoryName, "ByPlatformSpecId");
+        public string BannersByPluginIdOverride => Path.Combine(GetPluginUserDataPath(), BannersDirectoryName, "ByPluginId");
+        public string BannersByPlatformNameOverride => Path.Combine(GetPluginUserDataPath(), BannersDirectoryName, "ByPlatformName");
+
+
 
         public ExtrasSettings Settings => settingsViewModel?.Settings;
         public ExtrasSettingsViewModel settingsViewModel { get; set; }
@@ -130,7 +139,16 @@ namespace Extras
                 }
             }
 
-            BannerCache = new BannerCache(extendedThemes.Where(t => t.IsCurrentTheme).ToArray());
+            DirectoryBannerProvider directoryBannerProvider = new DirectoryBannerProvider()
+            {
+                DefaultBanner = DefaultBannerOverride,
+                BannersByPlatformNamePath = BannersByPlatformNameOverride,
+                BannersByPluginIdPath = BannersByPluginIdOverride,
+                BannersBySpecIdPath = BannersByPlatformIdOverride,
+                BannersBySourceNamePath = BannersBySourceNameOverride
+            };
+
+            BannerCache = new BannerCache(extendedThemes.Where(t => t.IsCurrentTheme).OfType<IBannerProvider>().Concat(new[] { directoryBannerProvider }).Reverse().ToArray());
         }
 
         private void Settings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -279,6 +297,88 @@ namespace Extras
                 Navigation.Forward();
                 ((RaisableCommand)Settings.Commands.BackCommand).RaiseCanExecuteChanged();
                 ((RaisableCommand)Settings.Commands.ForwardCommand).RaiseCanExecuteChanged();
+            }
+        }
+
+        private void RestoreDefaultThemeIcons()
+        {
+            ApplyThemeIcons(Path.Combine(PlayniteApi.Paths.ApplicationPath, "Themes", "Desktop", "Default"));
+        }
+
+        private void ApplyCurrentThemeIcons()
+        {
+            var api = PlayniteApi;
+            var destopThemeDirectory = Path.Combine(api.Paths.ConfigurationPath, "Themes", "Desktop");
+            if (Directory.Exists(destopThemeDirectory))
+            {
+                var themeDirectories = Directory.GetDirectories(destopThemeDirectory);
+                foreach (var themeDirectory in themeDirectories)
+                {
+                    var themManifestPath = Path.Combine(themeDirectory, ThemeManifestFileName);
+                    if (File.Exists(themManifestPath) && Serialization.TryFromYamlFile<ThemeManifest>(themManifestPath, out var manifest))
+                    {
+                        if (manifest.Id == api.ApplicationSettings.DesktopTheme)
+                        {
+                            ApplyThemeIcons(themeDirectory);
+
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ApplyThemeIcons(string themeRootPath)
+        {
+            try
+            {
+                var shortcutLocations = new string[]
+                {
+                    Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                    Environment.GetFolderPath(Environment.SpecialFolder.Startup),
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs),"Playnite"),
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),"Microsoft","Internet Explorer", "Quick Launch", "User Pinned", "TaskBar"),
+                };
+
+                var shortcutPaths = shortcutLocations
+                    .Where(path => Directory.Exists(path))
+                    .Select(path => Directory.GetFiles(path, "Playnite.lnk", SearchOption.TopDirectoryOnly).FirstOrDefault())
+                    .Where(path => !string.IsNullOrWhiteSpace(path)).ToList();
+
+                var iconPath = Path.Combine(themeRootPath, "Images", "applogo.ico");
+
+                if (!File.Exists(iconPath))
+                {
+                    iconPath = Path.Combine(PlayniteApi.Paths.ApplicationPath, "Playnite.DesktopApp.exe");
+                }
+
+                foreach (var shortcutPath in shortcutPaths)
+                {
+                    SetShortcutIcon(shortcutPath, iconPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Failed to apply theme icon");
+            }
+        }
+
+        private void SetShortcutIcon(string shortcutPath, string iconPath)
+        {
+            try
+            {
+                Shell32.Shell shell = new Shell32.Shell();
+                Shell32.Folder folder = shell.NameSpace(Path.GetDirectoryName(shortcutPath));
+                Shell32.FolderItem folderItem = folder.Items().Item(Path.GetFileName(shortcutPath));
+                Shell32.ShellLinkObject currentLink = (Shell32.ShellLinkObject)folderItem.GetLink;
+
+                currentLink.SetIconLocation(iconPath, 0);
+
+                currentLink.Save();
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Failed to set icon to {iconPath} for {shortcutPath}.");
             }
         }
 
@@ -439,9 +539,28 @@ namespace Extras
                     ),
                 MenuSection = ""
             };
-#else
-            return null;
 #endif
+            yield return new MainMenuItem()
+            {
+                Description = "Apply theme icon to shortcuts",
+                Action = m =>
+                {
+                    ApplyCurrentThemeIcons();
+                    PlayniteApi.Dialogs.ShowMessage("Theme icon was applied to shortcuts. To update the icon in the taskbar, Playnite needs to be restarted. If Playnite is pinned to the taskbar, it needs to be unpinned and then pinned again, in order for the icon to update.");
+                },
+                MenuSection = "@ThemeExtras"
+            };
+
+            yield return new MainMenuItem()
+            {
+                Description = "Restore shortcut icons",
+                Action = m =>
+                {
+                    RestoreDefaultThemeIcons();
+                    PlayniteApi.Dialogs.ShowMessage("Shortcut icons were restored. To update the icon in the taskbar, Playnite needs to be restarted. If Playnite is pinned to the taskbar, it needs to be unpinned and then pinned again, in order for the icon to update.");
+                },
+                MenuSection = "@ThemeExtras"
+            };
         }
 
         public override void OnGameInstalled(OnGameInstalledEventArgs args)
@@ -472,12 +591,22 @@ namespace Extras
             // Add code to be executed when game is uninstalled.
         }
 
+        private void EnsureDirectory(string path)
+        {
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+        }
+
         public override void OnApplicationStarted(OnApplicationStartedEventArgs args)
         {
-            if (!Directory.Exists(UserLinkIconDir))
-            {
-                Directory.CreateDirectory(UserLinkIconDir);
-            }
+            EnsureDirectory(UserLinkIconDir);
+            EnsureDirectory(BannersByPlatformIdOverride);
+            EnsureDirectory(BannersByPlatformNameOverride);
+            EnsureDirectory(BannersBySourceNameOverride);
+            EnsureDirectory(BannersByPluginIdOverride);
+
             // Add code to be executed when Playnite is initialized.
             settingsViewModel.Settings.PropertyChanged += Settings_PropertyChanged;
             PlayniteApi.Database.Games.ItemUpdated += Games_ItemUpdated;
@@ -669,6 +798,13 @@ namespace Extras
             {
                 Settings.PersistentResources[CurrentTheme.Id] = CurrentTheme.GetResources();
             }
+
+            if (Settings.ApplyThemeIconOnChange && Settings.LastThemeId != PlayniteApi.ApplicationSettings.DesktopTheme)
+            {
+                ApplyCurrentThemeIcons();
+            }
+
+            Settings.LastThemeId = PlayniteApi.ApplicationSettings.DesktopTheme;
             SavePluginSettings(Settings);
         }
 

@@ -11,6 +11,7 @@
     </UserControl.Resources>
     <DockPanel Margin="20" ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalAlignment="Stretch">
         <Button DockPanel.Dock="Top" Margin="5" Content="Open user link icon directory" Command="{Binding OpenUserLinkIconDir}" HorizontalAlignment="Left"/>
+        <Button DockPanel.Dock="Top" Margin="5" Content="Open banners override directory" Command="{Binding OpenBannersDirectory}" HorizontalAlignment="Left"/>
         <CheckBox IsChecked="{Binding Settings.EnableGameMenuRating}" Margin="5" HorizontalAlignment="Stretch"
                   DockPanel.Dock="Top">
             <TextBlock Text="Enable game menu entry to rate games" TextWrapping="Wrap"
@@ -19,6 +20,14 @@
         <CheckBox IsChecked="{Binding Settings.EnableSelectionPreservation}" Margin="5"
                   DockPanel.Dock="Top">
             <TextBlock Text="Preserve game selection when switching views (Playnite 10)"/>
+        </CheckBox>
+        <CheckBox IsChecked="{Binding Settings.ApplyThemeIconOnChange}" Margin="5"
+                  DockPanel.Dock="Top">
+            <CheckBox.ToolTip>
+                <TextBlock Text="Sets the icon of the Playnite shortcuts in the start menu, autostart folder and desktop to the applogo.ico supplied by themes, whenever the theme is changed. Use main menu functions to trigger manually or restore default. If Playnite is pinned to the taskbar, it needs to be unpinned and then pinned again to update."
+                           TextWrapping="Wrap" MaxWidth="600"/>
+            </CheckBox.ToolTip>
+            <TextBlock Text="Apply theme icon to Playnite shortcuts on theme change"/>
         </CheckBox>
         <GroupBox Header="Backups" HorizontalAlignment="Left" MinWidth="400"
                   DockPanel.Dock="Top">

@@ -55,6 +55,9 @@
     <Compile Include="Controls\Banner.xaml.cs">
       <DependentUpon>Banner.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\EditableItemControl.xaml.cs">
+      <DependentUpon>EditableItemControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\Links.xaml.cs">
       <DependentUpon>Links.xaml</DependentUpon>
     </Compile>
@@ -95,7 +98,9 @@
     </Compile>
     <Compile Include="MergedDictionary.cs" />
     <Compile Include="Models\FontIconInfo.cs" />
+    <Compile Include="Models\INamedItem.cs" />
     <Compile Include="Models\LinkExt.cs" />
+    <Compile Include="Models\NamedItems\NamedTag.cs" />
     <Compile Include="Models\NavigationPoint.cs" />
     <Compile Include="Models\ThemeExtrasManifest.cs" />
     <Compile Include="Models\ThemeManifest.cs" />
@@ -142,6 +147,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Controls\EditableItemControl.xaml" />
     <Page Include="Controls\Links.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -191,6 +197,17 @@
     <PackageReference Include="PlayniteSDK">
       <Version>6.4.0</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="Shell32">
+      <Guid>{50A7E9B0-70EF-11D1-B75A-00A0C90564FE}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

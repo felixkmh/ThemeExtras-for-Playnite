@@ -50,6 +50,12 @@ namespace Extras
         private bool backupAndRestore = true;
         public bool BackupAndRestore { get => backupAndRestore; set => SetValue(ref backupAndRestore, value); }
 
+        private string lastThemeId = null;
+        public string LastThemeId { get => lastThemeId; set => SetValue(ref lastThemeId, value); }
+
+        private bool applyThemeIconOnChange = false;
+        public bool ApplyThemeIconOnChange { get => applyThemeIconOnChange; set => SetValue(ref applyThemeIconOnChange, value); }
+
         private Dictionary<string, Dictionary<string, string>> persistentResources = new Dictionary<string, Dictionary<string, string>>();
         public Dictionary<string, Dictionary<string, string>> PersistentResources { get => persistentResources; set => SetValue(ref persistentResources, value); }
 
@@ -95,6 +101,8 @@ namespace Extras
         public ViewModels.ThemeExtrasManifestViewModel ExtendedThemesViewModel { get; set; }
 
         public ICommand OpenUserLinkIconDir => new RelayCommand(() => System.Diagnostics.Process.Start(Extras.Instance.UserLinkIconDir));
+
+        public ICommand OpenBannersDirectory => new RelayCommand(() => System.Diagnostics.Process.Start(Path.Combine(Extras.Instance.GetPluginUserDataPath(), Extras.BannersDirectoryName)));
 
         public ExtrasSettingsViewModel(Extras plugin)
         {
