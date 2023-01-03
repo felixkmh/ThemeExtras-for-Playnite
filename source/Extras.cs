@@ -399,7 +399,14 @@ namespace Extras
                 IEnumerable<Guid> gameIds = prevSelected.Select(g => g.Id);
                 if (!Enumerable.SequenceEqual(PlayniteApi.MainView.SelectedGames?.Select(g => g.Id) ?? Enumerable.Empty<Guid>(), gameIds ?? Enumerable.Empty<Guid>()))
                 {
-                    PlayniteApi.MainView.SelectGames(gameIds);
+                    try
+                    {
+                        PlayniteApi.MainView.SelectGames(gameIds);
+                    }
+                    catch (Exception ex)
+                    {
+                        
+                    }
                 }
             }
             else
