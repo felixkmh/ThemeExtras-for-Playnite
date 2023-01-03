@@ -403,7 +403,7 @@ namespace Extras
                     {
                         PlayniteApi.MainView.SelectGames(gameIds);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         
                     }
