@@ -132,7 +132,16 @@ namespace Extras.Controls
             {
                 case nameof(Game.PlatformIds):
                 case nameof(Game.PluginId):
-                    BannerSource = bannerCache.GetBanner(GameContext);
+                    if (Dispatcher.CheckAccess())
+                    {
+                        BannerSource = bannerCache.GetBanner(GameContext);
+                    }
+                    else
+                    {
+                        Dispatcher.BeginInvoke(new Action(() => {
+                            BannerSource = bannerCache.GetBanner(GameContext);
+                        }));
+                    }
                     break;
                 default:
                     break;
