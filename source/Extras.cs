@@ -148,7 +148,7 @@ namespace Extras
                 BannersBySourceNamePath = BannersBySourceNameOverride
             };
 
-            BannerCache = new BannerCache(extendedThemes.Where(t => t.IsCurrentTheme).OfType<IBannerProvider>().Concat(new[] { directoryBannerProvider }).Reverse().ToArray());
+            BannerCache = new BannerCache(extendedThemes.Where(t => t.IsCurrentTheme).OfType<IBannerProvider>().Concat(new[] { directoryBannerProvider }).ToArray());
         }
 
         private void Settings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
