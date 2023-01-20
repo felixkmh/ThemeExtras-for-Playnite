@@ -113,7 +113,7 @@ namespace Extras
             BitmapImage platformImage = null;
 
             bool isPc = false;
-            if (game.Platforms?.FirstOrDefault() is Platform platform)
+            if (game.Platforms?.OrderBy(p => p.SpecificationId == "pc_windows" ? -1 : 1).FirstOrDefault() is Platform platform)
             {
                 isPc = platform.SpecificationId == "pc_windows";
                 if (platformBanners.TryGetValue(platform, out platformImage))
