@@ -109,7 +109,7 @@ namespace Extras.Controls
             }
             if (newContext is Game)
             {
-                if (newContext?.PluginId != oldContext?.PluginId || newContext.PlatformIds?.FirstOrDefault() != oldContext?.PlatformIds?.FirstOrDefault())
+                if (newContext?.PluginId != oldContext?.PluginId || newContext.SourceId != oldContext.SourceId || !newContext.PlatformIds.IsListEqual(oldContext.PlatformIds))
                 {
                     var bitmapImage = bannerCache.GetBanner(newContext);
                     if (bitmapImage != BannerSource)
@@ -138,7 +138,8 @@ namespace Extras.Controls
                     }
                     else
                     {
-                        Dispatcher.BeginInvoke(new Action(() => {
+                        Dispatcher.BeginInvoke(new Action(() =>
+                        {
                             BannerSource = bannerCache.GetBanner(GameContext);
                         }));
                     }
