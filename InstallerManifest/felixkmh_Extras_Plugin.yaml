@@ -1,5 +1,14 @@
 AddonId: felixkmh_Extras_Plugin
 Packages:
+  - Version: 1.4.2
+    RequiredApiVersion: 6.4.0
+    ReleaseDate: 2023-01-20
+    PackageUrl: https://github.com/felixkmh/ThemeExtras-for-Playnite/releases/download/v1.4.2/felixkmh_Extras_Plugin_1_4_2.pext
+    Changelog:
+      - Completion status options are sorted alphabetically
+      - Prefer library banner if platforms contain PC (Windows) (complaints and praises [but mostly complaints] about this change may be directed to Jeshibu)
+      - Fixed error when trying to open non-existant backup folder
+      - Fixed order of evaluation of banner providers
   - Version: 1.4.1
     RequiredApiVersion: 6.4.0
     ReleaseDate: 2023-01-13
