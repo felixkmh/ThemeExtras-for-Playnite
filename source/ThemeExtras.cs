@@ -29,10 +29,10 @@ using static System.Reflection.BindingFlags;
 
 namespace Extras
 {
-    public class Extras : GenericPlugin
+    public class ThemeExtras : GenericPlugin
     {
         internal static readonly ILogger logger = LogManager.GetLogger();
-        internal static Extras Instance { get; private set; }
+        internal static ThemeExtras Instance { get; private set; }
 
         internal const string ExtensionName = "ThemeExtras";
         internal const string UserRatingElement = "UserRating";
@@ -47,6 +47,7 @@ namespace Extras
         internal const string BannerData = "BannerData";
         internal const string LinksElement = "Links";
         internal const string MediaControlsElement = "MediaElementControls";
+        internal const string EditableTags = "EditableTags";
 
         internal const string ExtrasManifestFileName = "themeExtras.yaml";
         internal const string ThemeManifestFileName = "theme.yaml";
@@ -70,7 +71,7 @@ namespace Extras
 
         public readonly BannerCache BannerCache;
 
-        public Extras(IPlayniteAPI api) : base(api)
+        public ThemeExtras(IPlayniteAPI api) : base(api)
         {
             Instance = this;
             settingsViewModel = new ExtrasSettingsViewModel(this);
@@ -100,7 +101,7 @@ namespace Extras
                     BannerElement,
                     BannerData,
                     LinksElement,
-                    //MediaControlsElement,
+                    EditableTags,
                 }.SelectMany(e => Enumerable.Range(0, 3).Select(i => e + (i == 0 ? "" : i.ToString()))).ToList()
             });
             AddSettingsSupport(new AddSettingsSupportArgs { SourceName = ExtensionName, SettingsRoot = "settingsViewModel.Settings" });
@@ -405,7 +406,7 @@ namespace Extras
                     }
                     catch (Exception)
                     {
-                        
+
                     }
                 }
             }
@@ -614,6 +615,16 @@ namespace Extras
             EnsureDirectory(BannersBySourceNameOverride);
             EnsureDirectory(BannersByPluginIdOverride);
 
+            // Reset cache if new platforms are being created or are removed
+            PlayniteApi.Database.Platforms.ItemCollectionChanged += (s, changes) =>
+            {
+                if (changes.AddedItems?.FirstOrDefault() is Platform
+                || changes.RemovedItems?.FirstOrDefault() is Platform)
+                {
+                    BannerCache.Reset();
+                }
+            };
+
             // Add code to be executed when Playnite is initialized.
             settingsViewModel.Settings.PropertyChanged += Settings_PropertyChanged;
             PlayniteApi.Database.Games.ItemUpdated += Games_ItemUpdated;
@@ -657,12 +668,15 @@ namespace Extras
         {
             if (e.PropertyName == "Selected")
             {
-                if (sender == librarySidebarWrapper)
+                if (sender == librarySidebarWrapper && PlayniteApi?.MainView != null)
                 {
                     AddNavigationPointDelayed(new LibraryNavigation
                     {
                         DesktopView = PlayniteApi.MainView.ActiveDesktopView,
-                        SelectedIds = PlayniteApi.MainView.SelectedGames.Select(g => g.Id).ToList(),
+                        SelectedIds = PlayniteApi.MainView.SelectedGames?
+                            .OfType<Game>()
+                            .Select(g => g.Id)
+                            .ToList() ?? new List<Guid>(),
                     });
                 }
                 else
@@ -689,7 +703,7 @@ namespace Extras
         {
             timer?.Stop();
             timer?.Dispose();
-            timer = new System.Timers.Timer() { AutoReset = false, Interval = 250 };
+            timer = new System.Timers.Timer() { AutoReset = false, Interval = 500 };
             timer.Elapsed += (s, e) =>
             {
                 PlayniteApi.MainView.UIDispatcher.Invoke(() =>
@@ -772,8 +786,8 @@ namespace Extras
                     return new Controls.BannerData(BannerCache);
                 case LinksElement:
                     return new Controls.Links();
-                case MediaControlsElement:
-                    return new Controls.MediaElementControls();
+                case EditableTags:
+                    return new Controls.EditableTags();
                 default:
                     return null;
             }

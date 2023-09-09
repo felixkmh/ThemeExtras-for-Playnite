@@ -47,7 +47,7 @@ namespace Extras
                 && currentlyNavigating == null)
             {
                 BackwardsStack.Push(navigationPoint);
-                Extras.logger.Debug($"Pushed \"{navigationPoint}\"");
+                ThemeExtras.logger.Debug($"Pushed \"{navigationPoint}\"");
                 if (BackwardsStack.Count > MAX_STEPS)
                 {
                     BackwardsStack.RemoveAt(0);
@@ -80,9 +80,9 @@ namespace Extras
                 }
                 catch (Exception ex)
                 {
-                    Extras.logger.Error(ex, string.Format("Failed to execute navigation \"{0}\".", currentlyNavigating));
+                    ThemeExtras.logger.Error(ex, string.Format("Failed to execute navigation \"{0}\".", currentlyNavigating));
                 }
-                Extras.logger.Debug($"Popped \"{currentlyNavigating}\" from backwards stack.");
+                ThemeExtras.logger.Debug($"Popped \"{currentlyNavigating}\" from backwards stack.");
                 OnPropertyChanged(nameof(CanGoBack));
                 OnPropertyChanged(nameof(CanGoForward));
             }
@@ -105,9 +105,9 @@ namespace Extras
                 }
                 catch (Exception ex)
                 {
-                    Extras.logger.Error(ex, string.Format("Failed to execute navigation \"{0}\".", currentlyNavigating));
+                    ThemeExtras.logger.Error(ex, string.Format("Failed to execute navigation \"{0}\".", currentlyNavigating));
                 }
-                Extras.logger.Debug($"Popped \"{currentlyNavigating}\" from forwards stack.");
+                ThemeExtras.logger.Debug($"Popped \"{currentlyNavigating}\" from forwards stack.");
                 OnPropertyChanged(nameof(CanGoBack));
                 OnPropertyChanged(nameof(CanGoForward));
             }

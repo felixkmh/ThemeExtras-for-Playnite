@@ -19,15 +19,50 @@ namespace Extras
 
     public class BannerCache
     {
+        public class WeakBitmapImage
+        {
+            public BitmapImage ImageSource
+            {
+                get => GetImageSource(); set
+                {
+                    WeakImageSource.SetTarget(value);
+                    Uri = value?.UriSource;
+                }
+            }
+            public WeakReference<BitmapImage> WeakImageSource { get; private set; }
+            public Uri Uri { get; private set; }
+
+            public static implicit operator WeakBitmapImage(BitmapImage source)
+            {
+                return new WeakBitmapImage { WeakImageSource = new WeakReference<BitmapImage>(source), Uri = source?.UriSource };
+            }
+
+            public static implicit operator BitmapImage(WeakBitmapImage weakBanner)
+            {
+                return weakBanner.GetImageSource();
+            }
+
+            private BitmapImage GetImageSource()
+            {
+                if (WeakImageSource.TryGetTarget(out var image))
+                {
+                    return image;
+                }
+                var refreshedSource = CreateImage(Uri);
+                WeakImageSource.SetTarget(refreshedSource);
+                return refreshedSource;
+            }
+        }
+
         private readonly IBannerProvider[] bannerProviders;
-        private readonly Dictionary<Tuple<Guid, Guid, Guid>, BitmapImage> cache = new Dictionary<Tuple<Guid, Guid, Guid>, BitmapImage>();
-        private readonly Dictionary<Platform, BitmapImage> platformBanners = new Dictionary<Platform, BitmapImage>();
-        private readonly Dictionary<Guid, BitmapImage> pluginBanners = new Dictionary<Guid, BitmapImage>();
-        private readonly Dictionary<GameSource, BitmapImage> sourceBanners = new Dictionary<GameSource, BitmapImage>();
+        private readonly Dictionary<Tuple<Guid, Guid, Guid>, WeakBitmapImage> cache = new Dictionary<Tuple<Guid, Guid, Guid>, WeakBitmapImage>();
+        private readonly Dictionary<Platform, WeakBitmapImage> platformBanners = new Dictionary<Platform, WeakBitmapImage>();
+        private readonly Dictionary<Guid, WeakBitmapImage> pluginBanners = new Dictionary<Guid, WeakBitmapImage>();
+        private readonly Dictionary<GameSource, WeakBitmapImage> sourceBanners = new Dictionary<GameSource, WeakBitmapImage>();
         private readonly MergedDictionary<Platform, string> combinedBannersByPlatform = new MergedDictionary<Platform, string>();
         private readonly MergedDictionary<Guid, string> combinedBannersByPluginId = new MergedDictionary<Guid, string>();
         private readonly MergedDictionary<GameSource, string> combinedBannersBySource = new MergedDictionary<GameSource, string>();
-        private readonly BitmapImage defaultBanner;
+        private readonly WeakBitmapImage defaultBanner;
 
         private bool isInitialized = false;
 
@@ -74,7 +109,18 @@ namespace Extras
             isInitialized = true;
         }
 
-        public BitmapImage CreateImage(string path)
+        public void Reset()
+        {
+            combinedBannersByPlatform.Clear();
+            combinedBannersByPluginId.Clear();
+            combinedBannersBySource.Clear();
+
+            cache.Clear();
+
+            isInitialized = false;
+        }
+
+        public static BitmapImage CreateImage(string path)
         {
             try
             {
@@ -84,6 +130,24 @@ namespace Extras
                 bitmapImage.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
                 bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
                 bitmapImage.DecodePixelHeight = Math.Min(1000, Math.Max(0, ExtendedTheme.Current?.DecodeHeight ?? 50));
+                bitmapImage.EndInit();
+                return bitmapImage;
+            }
+            catch (Exception)
+            { }
+            return null;
+        }
+
+        public static BitmapImage CreateImage(Uri uri)
+        {
+            try
+            {
+                var bitmapImage = new BitmapImage();
+                bitmapImage.BeginInit();
+                bitmapImage.UriSource = uri;
+                bitmapImage.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                //bitmapImage.DecodePixelHeight = Math.Min(1000, Math.Max(0, ExtendedTheme.Current?.DecodeHeight ?? 50));
                 bitmapImage.EndInit();
                 return bitmapImage;
             }
@@ -109,8 +173,8 @@ namespace Extras
                 }
             }
 
-            BitmapImage pcImage = null;
-            BitmapImage platformImage = null;
+            WeakBitmapImage pcImage = null;
+            WeakBitmapImage platformImage = null;
 
             bool isPc = false;
             if (game.Platforms?.OrderBy(p => p.SpecificationId == "pc_windows" ? -1 : 1).FirstOrDefault() is Platform platform)
@@ -196,7 +260,7 @@ namespace Extras
                 }
             }
 
-            if (platformImage is BitmapImage)
+            if (platformImage is WeakBitmapImage)
             {
                 return platformImage;
             }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Extras.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -15,6 +16,35 @@ namespace Extras.Converters
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             Dock? side = null;
+            var radius = System.Convert.ToDouble(value, CultureInfo.InvariantCulture);
+
+            if (parameter is string factorsString)
+            {
+                var factors = factorsString.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries).ToDoubles().ToList();
+                if (factors.Count() == 4)
+                {
+                    if (targetType == typeof(CornerRadius))
+                    {
+                        return new CornerRadius(radius * factors[0], radius * factors[1], radius * factors[2], radius * factors[3]);
+                    }
+                    if (targetType == typeof(Thickness))
+                    {
+                        return new Thickness(radius * factors[0], radius * factors[1], radius * factors[2], radius * factors[3]);
+                    }
+                }
+                if (factors.Count() == 1)
+                {
+                    if (targetType == typeof(CornerRadius))
+                    {
+                        return new CornerRadius(radius * factors[0]);
+                    }
+                    if (targetType == typeof(Thickness))
+                    {
+                        return new Thickness(radius * factors[0]);
+                    }
+                }
+            }
+
             if (parameter is Dock)
             {
                 side = (Dock)parameter;
@@ -26,8 +56,6 @@ namespace Extras.Converters
                     side = parsed;
                 }
             }
-
-            var radius = System.Convert.ToDouble(value, CultureInfo.InvariantCulture);
 
             switch (side)
             {

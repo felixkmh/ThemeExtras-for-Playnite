@@ -78,7 +78,7 @@ namespace Extras
             extendedTheme.RootPath = themeRootPath;
             extendedTheme.LastChangeFilePath = Path.Combine(themeRootPath, "lastChanged.json");
 
-            var extraManifestPath = Path.Combine(themeRootPath, Extras.ExtrasManifestFileName);
+            var extraManifestPath = Path.Combine(themeRootPath, ThemeExtras.ExtrasManifestFileName);
             if (!File.Exists(extraManifestPath))
             {
                 return false;
@@ -100,7 +100,7 @@ namespace Extras
                 BannersBySpecIdPath = extrasManifest.BannersBySpecIdPath is string ? Path.Combine(themeRootPath, extrasManifest.BannersBySpecIdPath) : null,
             };
 
-            var themManifestPath = Path.Combine(themeRootPath, Extras.ThemeManifestFileName);
+            var themManifestPath = Path.Combine(themeRootPath, ThemeExtras.ThemeManifestFileName);
             if (!File.Exists(themManifestPath))
             {
                 return false;
@@ -111,7 +111,7 @@ namespace Extras
             }
 
             extendedTheme.ThemeManifest = manifest;
-            extendedTheme.BackupPath = Path.Combine(Extras.Instance.GetPluginUserDataPath(), "ThemeBackups", manifest.Id);
+            extendedTheme.BackupPath = Path.Combine(ThemeExtras.Instance.GetPluginUserDataPath(), "ThemeBackups", manifest.Id);
 
             var currentThemeId = Playnite.SDK.API.Instance.ApplicationSettings.DesktopTheme;
             extendedTheme.IsCurrentTheme = extendedTheme.Id == currentThemeId;
@@ -305,12 +305,12 @@ namespace Extras
 
                 string sourceFilePath = Path.Combine(RootPath, relativeFilePath);
                 File.Copy(sourceFilePath, fileBackupPath, true);
-                Extras.logger.Debug($"Backed {relativeFilePath} from {RootPath} to {BackupPath}.");
+                ThemeExtras.logger.Debug($"Backed {relativeFilePath} from {RootPath} to {BackupPath}.");
                 return true;
             }
             catch (Exception ex)
             {
-                Extras.logger.Error(ex, $"Failed to backup {relativeFilePath} of theme {Name}.");
+                ThemeExtras.logger.Error(ex, $"Failed to backup {relativeFilePath} of theme {Name}.");
                 return false;
             }
         }
@@ -330,7 +330,7 @@ namespace Extras
                 if (File.Exists(sourceFilePath))
                 {
                     File.Copy(sourceFilePath, fileTargetPath, true);
-                    Extras.logger.Debug($"Restored {relativeFilePath} from {BackupPath} to {RootPath}.");
+                    ThemeExtras.logger.Debug($"Restored {relativeFilePath} from {BackupPath} to {RootPath}.");
                 }
             }
             catch (Exception ex)
@@ -343,7 +343,7 @@ namespace Extras
                         Playnite.SDK.NotificationType.Error
                     ));
                 }
-                Extras.logger.Error(ex, $"Failed to restore {relativeFilePath} of theme {Name}.");
+                ThemeExtras.logger.Error(ex, $"Failed to restore {relativeFilePath} of theme {Name}.");
             }
         }
 

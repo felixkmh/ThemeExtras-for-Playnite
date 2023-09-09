@@ -43,15 +43,15 @@ namespace Extras.Models
             }
             catch (Exception ex)
             {
-                Extras.logger.Debug(ex, $"Failed to open url {Url}.");
+                ThemeExtras.logger.Debug(ex, $"Failed to open url {Url}.");
             }
         });
 
-        private static readonly string assemblyDir = Path.GetDirectoryName(typeof(Extras).Assembly.Location);
+        private static readonly string assemblyDir = Path.GetDirectoryName(typeof(ThemeExtras).Assembly.Location);
         public static FontFamily IconFont = new FontFamily($"file:///{Path.Combine(assemblyDir, "Assets/Fonts/brands.ttf")}#brands");
         public static FontFamily FontAwesomeFont = new FontFamily($"file:///{Path.Combine(assemblyDir, "Assets/Fonts/Font Awesome 6 Brands-Regular-400.otf")}#Font Awesome 6 Brands");
 
-        public static string UserIconDir => Extras.Instance.UserLinkIconDir;
+        public static string UserIconDir => ThemeExtras.Instance.UserLinkIconDir;
 
         public static readonly ReadOnlyDictionary<string, Uri> FileIconDict = new ReadOnlyDictionary<string,Uri>(new Dictionary<string, Uri>
         {
@@ -116,7 +116,7 @@ namespace Extras.Models
         {
             if (fileCachePath is null)
             {
-                if (Extras.Instance?.GetPluginUserDataPath() is string userData)
+                if (ThemeExtras.Instance?.GetPluginUserDataPath() is string userData)
                 {
                     var path = Path.Combine(userData, "LinkIconCache");
                     if (!Directory.Exists(path))
@@ -128,7 +128,7 @@ namespace Extras.Models
                         }
                         catch (Exception ex)
                         {
-                            Extras.logger.Error(ex, $"Failed to create directory {path}");
+                            ThemeExtras.logger.Error(ex, $"Failed to create directory {path}");
                             fileCachePath = null;
                             return false;
                         }
@@ -232,7 +232,7 @@ namespace Extras.Models
                             catch (Exception ex)
                             {
                                 icon = null;
-                                Extras.logger.Error(ex, $"Failed to load link icon \"{userIconPath}\" for domain \"{domain}\".");
+                                ThemeExtras.logger.Error(ex, $"Failed to load link icon \"{userIconPath}\" for domain \"{domain}\".");
                             }
                         }
                     }
@@ -285,7 +285,7 @@ namespace Extras.Models
                                 catch (Exception ex)
                                 {
                                     icon = null;
-                                    Extras.logger.Error(ex, $"Failed to load link icon \"{match.FullName}\" for domain \"{domain}\".");
+                                    ThemeExtras.logger.Error(ex, $"Failed to load link icon \"{match.FullName}\" for domain \"{domain}\".");
                                 }
                             }
                         }
@@ -330,7 +330,7 @@ namespace Extras.Models
                         catch (Exception ex)
                         {
                             icon = null;
-                            Extras.logger.Error(ex, $"Failed to load link icon \"{iconUri}\" for domain \"{domain}\".");
+                            ThemeExtras.logger.Error(ex, $"Failed to load link icon \"{iconUri}\" for domain \"{domain}\".");
                         }
                     }
                 }
@@ -390,7 +390,7 @@ namespace Extras.Models
                         }
                         catch (Exception ex)
                         {
-                            Extras.logger.Error(ex, $"Failed to load link icon \"{fileIcon}\" for domain \"{domain}\".");
+                            ThemeExtras.logger.Error(ex, $"Failed to load link icon \"{fileIcon}\" for domain \"{domain}\".");
                         }
                     }
                 }
@@ -431,7 +431,7 @@ namespace Extras.Models
                 catch (Exception ex)
                 {
                     icon = null;
-                    Extras.logger.Error(ex, $"Failed to load link icon \"{faviconUrl}\" for domain \"{domain}\".");
+                    ThemeExtras.logger.Error(ex, $"Failed to load link icon \"{faviconUrl}\" for domain \"{domain}\".");
                 }
             }
 
@@ -495,7 +495,7 @@ namespace Extras.Models
                             catch (Exception ex)
                             {
                                 icon = null;
-                                Extras.logger.Error(ex, $"Failed to load link icon \"{userIconPath}\" for domain \"{domain}\".");
+                                ThemeExtras.logger.Error(ex, $"Failed to load link icon \"{userIconPath}\" for domain \"{domain}\".");
                             }
                         }
                     }
@@ -545,7 +545,7 @@ namespace Extras.Models
                                 catch (Exception ex)
                                 {
                                     icon = null;
-                                    Extras.logger.Error(ex, $"Failed to load link icon \"{match.FullName}\" for domain \"{domain}\".");
+                                    ThemeExtras.logger.Error(ex, $"Failed to load link icon \"{match.FullName}\" for domain \"{domain}\".");
                                 }
                             }
                         }
@@ -587,7 +587,7 @@ namespace Extras.Models
                         catch (Exception ex)
                         {
                             icon = null;
-                            Extras.logger.Error(ex, $"Failed to load link icon \"{iconUri}\" for domain \"{domain}\".");
+                            ThemeExtras.logger.Error(ex, $"Failed to load link icon \"{iconUri}\" for domain \"{domain}\".");
                         }
                     }
                 }
@@ -639,7 +639,7 @@ namespace Extras.Models
                         }
                         catch (Exception ex)
                         {
-                            Extras.logger.Error(ex, $"Failed to load link icon \"{fileIcon}\" for domain \"{domain}\".");
+                            ThemeExtras.logger.Error(ex, $"Failed to load link icon \"{fileIcon}\" for domain \"{domain}\".");
                         }
                     }
                 }
@@ -679,7 +679,7 @@ namespace Extras.Models
                     icon = null;
                     if (!(ex is TaskCanceledException))
                     {
-                        Extras.logger.Error(ex, $"Failed to load link icon \"{faviconUrl}\" for domain \"{domain}\".");
+                        ThemeExtras.logger.Error(ex, $"Failed to load link icon \"{faviconUrl}\" for domain \"{domain}\".");
                     } else
                     {
 

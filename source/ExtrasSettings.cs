@@ -83,7 +83,7 @@ namespace Extras
 
     public class ExtrasSettingsViewModel : ObservableObject, ISettings
     {
-        private readonly Extras plugin;
+        private readonly ThemeExtras plugin;
         private ExtrasSettings editingClone { get; set; }
 
         private ExtrasSettings settings;
@@ -100,11 +100,11 @@ namespace Extras
 
         public ViewModels.ThemeExtrasManifestViewModel ExtendedThemesViewModel { get; set; }
 
-        public ICommand OpenUserLinkIconDir => new RelayCommand(() => System.Diagnostics.Process.Start(Extras.Instance.UserLinkIconDir));
+        public ICommand OpenUserLinkIconDir => new RelayCommand(() => System.Diagnostics.Process.Start(ThemeExtras.Instance.UserLinkIconDir));
 
-        public ICommand OpenBannersDirectory => new RelayCommand(() => System.Diagnostics.Process.Start(Path.Combine(Extras.Instance.GetPluginUserDataPath(), Extras.BannersDirectoryName)));
+        public ICommand OpenBannersDirectory => new RelayCommand(() => System.Diagnostics.Process.Start(Path.Combine(ThemeExtras.Instance.GetPluginUserDataPath(), ThemeExtras.BannersDirectoryName)));
 
-        public ExtrasSettingsViewModel(Extras plugin)
+        public ExtrasSettingsViewModel(ThemeExtras plugin)
         {
             // Injecting your plugin instance is required for Save/Load method because Playnite saves data to a location based on what plugin requested the operation.
             this.plugin = plugin;
@@ -184,7 +184,7 @@ namespace Extras
                         try
                         {
                             var items = CreateGameMenuItems(api, plugin);
-                            var settingsItem = new MenuItem { Header = ResourceProvider.GetString("LOCSettingsLabel"), Command = Extras.Instance.Settings.Commands.OpenPluginSettingsCommand, CommandParameter = id };
+                            var settingsItem = new MenuItem { Header = ResourceProvider.GetString("LOCSettingsLabel"), Command = ThemeExtras.Instance.Settings.Commands.OpenPluginSettingsCommand, CommandParameter = id };
                             if (items.Count > 0)
                             {
                                 items.Insert(0, new Separator());
@@ -194,7 +194,7 @@ namespace Extras
                         }
                         catch (System.Exception ex)
                         {
-                            Extras.logger.Debug(ex, $"Failed to create ExtraMetadata menu items.");
+                            ThemeExtras.logger.Debug(ex, $"Failed to create ExtraMetadata menu items.");
                         }
                     }
                 return null;
@@ -213,7 +213,7 @@ namespace Extras
                         try
                         {
                             var items = CreateGameMenuItems(api, plugin);
-                            var settingsItem = new MenuItem { Header = ResourceProvider.GetString("LOCSettingsLabel"), Command = Extras.Instance.Settings.Commands.OpenPluginSettingsCommand, CommandParameter = id };
+                            var settingsItem = new MenuItem { Header = ResourceProvider.GetString("LOCSettingsLabel"), Command = ThemeExtras.Instance.Settings.Commands.OpenPluginSettingsCommand, CommandParameter = id };
                             if (items.Count > 0)
                             {
                                 items.Insert(0, new Separator());
@@ -223,7 +223,7 @@ namespace Extras
                         }
                         catch (System.Exception ex)
                         {
-                            Extras.logger.Debug(ex, $"Failed to create BackgroundChanger menu items.");
+                            ThemeExtras.logger.Debug(ex, $"Failed to create BackgroundChanger menu items.");
                         }
                     }
                 return null;
@@ -337,7 +337,7 @@ namespace Extras
             }
             catch (Exception ex)
             {
-                Extras.logger.Error(ex, $"Failed to open url {param?.ToString()}.");
+                ThemeExtras.logger.Error(ex, $"Failed to open url {param?.ToString()}.");
             }
         }
 
@@ -513,7 +513,7 @@ namespace Extras
                     }
                     catch (System.Exception ex)
                     {
-                        Extras.logger.Debug(ex, $"Failed to open plugin settings for plugin with Id: {id}");
+                        ThemeExtras.logger.Debug(ex, $"Failed to open plugin settings for plugin with Id: {id}");
                     }
                 }
             },
@@ -542,7 +542,7 @@ namespace Extras
                     }
                     catch (System.Exception ex)
                     {
-                        Extras.logger.Debug(ex, $"Failed to open config directory for plugin with Id: {id}");
+                        ThemeExtras.logger.Debug(ex, $"Failed to open config directory for plugin with Id: {id}");
                     }
                 }
             },
@@ -573,7 +573,7 @@ namespace Extras
                     }
                     catch (System.Exception ex)
                     {
-                        Extras.logger.Debug(ex, $"Failed to open {logPath}");
+                        ThemeExtras.logger.Debug(ex, $"Failed to open {logPath}");
                     }
                 }
             },
@@ -596,14 +596,14 @@ namespace Extras
                     }
                     catch (System.Exception ex)
                     {
-                        Extras.logger.Debug(ex, $"Failed to open {logPath}");
+                        ThemeExtras.logger.Debug(ex, $"Failed to open {logPath}");
                     }
                 }
             },
             id => true);
 
-        public ICommand BackCommand { get; } = new RaisableCommand(Extras.Instance.NavigateBack, () => Extras.Instance.Navigation.CanGoBack);
+        public ICommand BackCommand { get; } = new RaisableCommand(ThemeExtras.Instance.NavigateBack, () => ThemeExtras.Instance.Navigation.CanGoBack);
 
-        public ICommand ForwardCommand { get; } = new RaisableCommand(Extras.Instance.NavigateForward, () => Extras.Instance.Navigation.CanGoForward);
+        public ICommand ForwardCommand { get; } = new RaisableCommand(ThemeExtras.Instance.NavigateForward, () => ThemeExtras.Instance.Navigation.CanGoForward);
     }
 }

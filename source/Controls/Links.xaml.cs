@@ -77,7 +77,7 @@ namespace Extras.Controls
             }
             catch (Exception ex)
             {
-                Extras.logger.Debug(ex, $"Failed to update link icons for game {game?.Name}");
+                ThemeExtras.logger.Debug(ex, $"Failed to update link icons for game {game?.Name}");
             }
         }
 

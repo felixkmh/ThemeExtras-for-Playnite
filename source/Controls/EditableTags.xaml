@@ -1,0 +1,87 @@
+﻿<local:ThemedPluginUserControl  xmlns:extras="clr-namespace:Extras" x:Class="Extras.Controls.EditableTags"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Extras.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <local:EditableItemsControl EditableItemsSource="{Binding GameContext.Tags}" ItemsPool="{Binding Collection}" Background="Transparent" x:Name="EditableItemsControl">
+            <local:EditableItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel/>
+                </ItemsPanelTemplate>
+            </local:EditableItemsControl.ItemsPanel>
+            <local:EditableItemsControl.PlaceholderTemplate>
+                <DataTemplate>
+                    <Border Background="{DynamicResource GlyphBrush}" Padding="1" Margin="2" CornerRadius="5" Visibility="Hidden" x:Name="Border" MinWidth="20" HorizontalAlignment="Left">
+                        <Grid>
+                            <TextBox x:Name="PART_FilterTextBox" Padding="1 0" Cursor="Hand" Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=local:EditableItemsControl}}" Background="{x:Null}" Margin="0" BorderThickness="0">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Command="{Binding DataContext.AcceptCommand, RelativeSource={RelativeSource AncestorType=local:EditableTags}, FallbackValue={x:Null}}" 
+                                                CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=local:EditableItemsControl}, Path=Match}" Key="Return" />
+                                    <KeyBinding Command="{Binding DataContext.AcceptCommand, RelativeSource={RelativeSource AncestorType=local:EditableTags}, FallbackValue={x:Null}}"
+                                                CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=local:EditableItemsControl}, Path=Match}" Key="Enter" />
+                                </TextBox.InputBindings>
+                            </TextBox>
+                            <TextBox IsReadOnly="True" Padding="1 0" IsHitTestVisible="False" Opacity="0.5" Text="{Binding BestMatch, Mode=OneWay, RelativeSource={RelativeSource AncestorType=local:EditableItemsControl}}" Background="{x:Null}" Margin="0" BorderThickness="0">
+                            </TextBox>
+                            <TextBlock Text="&#xEFC2;" FontFamily="{DynamicResource FontIcoFont}" x:Name="PlusText" Padding="0" Style="{DynamicResource BaseTextBlockStyle}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           IsHitTestVisible="False" Visibility="Collapsed"/>
+                        </Grid>
+                    </Border>
+                    <DataTemplate.Triggers>
+                        <Trigger Property="Text" SourceName="PART_FilterTextBox" Value="">
+                            <Setter Property="Visibility" TargetName="PlusText" Value="Visible"/>
+                        </Trigger>
+                        <DataTrigger Binding="{Binding ElementName=Filter, Path=IsKeyboardFocusWithin}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="Border"/>
+                            <Setter Property="Cursor" Value="Arrow" TargetName="PART_FilterTextBox"/>
+                            <Setter Property="Visibility" Value="Collapsed" TargetName="PlusText"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=local:EditableItemsControl}}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="Border"/>
+                        </DataTrigger>
+                        
+                    </DataTemplate.Triggers>
+                </DataTemplate>
+            </local:EditableItemsControl.PlaceholderTemplate>
+            <local:EditableItemsControl.DefaultTemplate>
+                <DataTemplate>
+                    <Border Background="{DynamicResource GlyphBrush}" Padding="0" Margin="2" CornerRadius="6" x:Name="OuterBorder" HorizontalAlignment="Left">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{Binding ActualWidth, ElementName=Text}"/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="Text" Padding="0" Margin="0 0 0 2" HorizontalAlignment="Center" Grid.ColumnSpan="2" VerticalAlignment="Center"
+                                    Command="{Binding RelativeSource={RelativeSource AncestorType=ContentControl, AncestorLevel=2}, Path=DataContext.SetTagFilterCommand}"
+                                    CommandParameter="{Binding}">
+                                <Button.Template>
+                                    <ControlTemplate>
+                                        <TextBlock Text="{Binding Name}" Style="{DynamicResource BaseTextBlockStyle}" Background="Transparent"/>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                            <Border x:Name="ButtonBorder" Visibility="Hidden" Grid.Column="1" Padding="0" Margin="0" CornerRadius="5">
+                                <Button HorizontalAlignment="Right" Padding="0" BorderThickness="0" VerticalAlignment="Center" Content="&#xEEE4;" FontFamily="{DynamicResource FontIcoFont}" Command="{Binding DataContext.RemoveCommand, RelativeSource={RelativeSource AncestorType=local:EditableTags}}"
+                                        CommandParameter="{Binding}" Margin="0" Foreground="{DynamicResource TextBrush}" />
+                            </Border>
+                        </Grid>
+                    </Border>
+                    <DataTemplate.Triggers>
+                        <Trigger SourceName="ButtonBorder" Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ButtonBorder" Property="Background" Value="#44FFFFFF"/>
+                        </Trigger>
+                        <DataTrigger Binding="{Binding IsMouseOver, ElementName=OuterBorder}" Value="True">
+                            <Setter TargetName="ButtonBorder" Property="Visibility" Value="Visible"/>
+                            <!--<Setter TargetName="Text" Property="Opacity" Value="0.2"/>-->
+                            <Setter TargetName="Text" Property="HorizontalAlignment" Value="Left"/>
+                        </DataTrigger>
+                    </DataTemplate.Triggers>
+                </DataTemplate>
+            </local:EditableItemsControl.DefaultTemplate>
+        </local:EditableItemsControl>
+    </Grid>
+</local:ThemedPluginUserControl>
